@@ -77,14 +77,79 @@ const ExportManager = {
     },
 
     async exportToPDF(element, filename) {
+        // Clonar el contenido con estilos limpios para PDF (fondo blanco, texto negro)
+        const clone = element.cloneNode(true);
+        clone.style.cssText = `
+            background: #ffffff !important;
+            color: #1a1a2e !important;
+            padding: 30px !important;
+            font-family: 'Inter', Arial, sans-serif !important;
+            font-size: 13px !important;
+            line-height: 1.7 !important;
+            width: 750px !important;
+            backdrop-filter: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        `;
+
+        // Forzar estilos en todos los elementos hijos
+        clone.querySelectorAll('*').forEach(el => {
+            el.style.color = '';
+            el.style.background = '';
+            el.style.backdropFilter = '';
+            el.style.webkitBackdropFilter = '';
+            el.style.border = '';
+            el.style.boxShadow = '';
+        });
+
+        // Estilos específicos para headings y badges
+        clone.querySelectorAll('h1, h2').forEach(el => {
+            el.style.color = '#1a1a2e';
+            el.style.borderBottom = '2px solid #4361ee';
+            el.style.paddingBottom = '8px';
+            el.style.marginBottom = '16px';
+        });
+        clone.querySelectorAll('h3').forEach(el => {
+            el.style.color = '#4361ee';
+            el.style.marginTop = '20px';
+        });
+        clone.querySelectorAll('strong, b').forEach(el => {
+            el.style.color = '#1a1a2e';
+        });
+        clone.querySelectorAll('.req-badge, .badge, [class*="badge"]').forEach(el => {
+            el.style.background = '#4361ee';
+            el.style.color = '#ffffff';
+            el.style.padding = '2px 6px';
+            el.style.borderRadius = '4px';
+            el.style.fontSize = '11px';
+        });
+
+        // Insertar oculto para renderizar
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'fixed';
+        wrapper.style.top = '-9999px';
+        wrapper.style.left = '-9999px';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
         const opt = {
-            margin: 10,
+            margin: [15, 15, 15, 15],
             filename: `${filename}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        await html2pdf().set(opt).from(element).save();
+
+        try {
+            await html2pdf().set(opt).from(clone).save();
+        } finally {
+            document.body.removeChild(wrapper);
+        }
     },
 
     async exportToPPTX(element, filename) {
