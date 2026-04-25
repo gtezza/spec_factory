@@ -5,7 +5,7 @@ const APP_CONFIG = {
     },
     SUPABASE: {
         URL: "https://xkfqycioaysswohzgkkt.supabase.co",
-        ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZnF5Y2lvYXlzc3dvaHpna2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjIwODYsImV4cCI6MjA4NzQzYjg4Nn0.nqT8oLfOpIhUfCQtXLcIHed_39POl3HjlYSObsvRq2E"
+        ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrZnF5Y2lvYXlzc3dvaHpna2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjIwODYsImV4cCI6MjA4NzQzODA4Nn0.nqT8oLfOpIhUfCQtXLcIHed_39POl3HjlYSObsvRq2E"
     },
     GOOGLE: {
         CLIENT_ID: "TU_CLIENT_ID_DE_GOOGLE", // Requerido para Drive

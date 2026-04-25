@@ -139,6 +139,25 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
     result = supabase.table("specifications").insert(data).execute()
     return result.data
 
+def validate_user(email, password):
+    """Valida las credenciales de un usuario contra la tabla profiles."""
+    try:
+        result = supabase.table("profiles")\
+            .select("id, full_name, email, role_name, password")\
+            .eq("email", email)\
+            .execute()
+        
+        if result.data and len(result.data) > 0:
+            user = result.data[0]
+            if user['password'] == password:
+                # No devolvemos la contraseña al frontend
+                del user['password']
+                return user
+        return None
+    except Exception as e:
+        print(f"[ERROR] Error en validate_user: {e}")
+        return None
+
 def search_specifications(query_text, threshold=0.4, max_results=5):
     """Busca specs semánticamente similares a la consulta de texto."""
     

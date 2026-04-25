@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spec Factory | IEEE 830 Automation</title>
-    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    <title>Spec Factory | Automatización IEEE 830</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <!-- Dependencias ExportManager -->
@@ -12,6 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.11.0/libs/pptxgen.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="bg-blobs">
@@ -51,9 +53,13 @@
                     <i class="ri-search-line"></i>
                     <input type="text" id="semantic-search" placeholder="Búsqueda semántica (ej. auth, reportes)...">
                 </div>
-                <div class="user-profile" style="display: flex; gap: 10px;">
-                    <button class="btn glass" id="btn-open-login" style="border: 1px solid rgba(255,255,255,0.1);">
-                        <i class="ri-user-line"></i> Identificarse
+                <div class="user-profile" id="user-profile-header" style="display: flex; align-items: center; gap: 15px;">
+                    <div id="user-info" style="text-align: right; display: none;">
+                        <div id="header-user-name" style="font-weight: 600; font-size: 14px;">Usuario</div>
+                        <div id="header-user-role" style="font-size: 11px; opacity: 0.6; text-transform: uppercase;">Rol</div>
+                    </div>
+                    <button class="btn glass" id="btn-logout" style="border: 1px solid rgba(255,255,255,0.1); display: none;">
+                        <i class="ri-logout-box-line"></i> Salir
                     </button>
                     <button class="btn btn-primary" id="btn-new-spec">
                         <i class="ri-add-line"></i> Nueva Spec
@@ -89,39 +95,44 @@
                 </div>
 
                 <div class="stats-grid">
-                    <div class="stat-card glass">
-                        <span class="stat-value" id="count-total">0</span>
-                        <span class="stat-label">Total Specs</span>
-                    </div>
-                    <div class="stat-card glass">
-                        <span class="stat-value" id="count-approved">0</span>
-                        <span class="stat-label">Aprobadas</span>
-                    </div>
-                    <div class="stat-card glass">
-                        <span class="stat-value" id="count-pending">0</span>
-                        <span class="stat-label">Pendientes</span>
-                    </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="count-total">0</div>
+                            <div class="stat-label">Specs Totales</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="count-approved">0</div>
+                            <div class="stat-label">Aprobadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="count-pending">0</div>
+                            <div class="stat-label">Pendientes</div>
+                        </div>
                 </div>
 
                 <!-- Resultados de Búsqueda Semántica -->
                 <div id="search-results" class="glass" style="display:none; margin-top:20px; padding:20px;"></div>
 
-                <div class="glass" style="margin-top: 20px; padding: 20px;">
-                    <h3>Especificaciones Recientes</h3>
-                    <table class="data-table" id="recent-specs-table">
-                        <thead>
-                            <tr>
-                                <th>Título y Sector</th>
-                                <th>Analista</th>
-                                <th>Urgencia</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Se inyecta dinámicamente -->
-                        </tbody>
-                    </table>
+                <div class="card recent-activity">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="margin:0">Especificaciones Recientes</h2>
+                        <button class="btn btn-secondary" onclick="window.location.reload()"><i class="ri-refresh-line"></i> Actualizar</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="recent-specs-table">
+                            <thead>
+                                <tr>
+                                    <th>Especificación</th>
+                                    <th>Analista</th>
+                                    <th>Urgencia</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Se carga vía JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -190,20 +201,37 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Modal de Acceso (Login Simulado) -->
-    <div id="modal-login" class="modal-overlay" style="display: none;">
-        <div class="glass" style="width: 400px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+    <!-- Modal de Acceso (Login Real) -->
+    <div id="modal-login" class="modal-overlay" style="display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div class="glass" style="width: 400px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50px; left: -50px; width: 100px; height: 100px; background: var(--primary); filter: blur(50px); opacity: 0.3;"></div>
+            
             <div style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: 800; margin-bottom: 10px;">Spec Factory</div>
-            <p style="opacity: 0.7; margin-bottom: 30px;">Ingreso al Sistema de Especificaciones IA</p>
+            <p style="opacity: 0.7; margin-bottom: 30px;">Ingreso al Sistema de Seguridad IA</p>
             
-            <div style="text-align: left; margin-bottom: 20px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Nombre del Analista</label>
-                <input type="text" id="user-name" class="glass" value="Analista Spec Factory" style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1);">
-            </div>
+            <form id="login-form">
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Correo Electrónico</label>
+                    <input type="email" id="login-email" class="glass" placeholder="admin@specfactory.com" required style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                </div>
+                
+                <div style="text-align: left; margin-bottom: 25px;">
+                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Contraseña</label>
+                    <input type="password" id="login-password" class="glass" placeholder="••••••••" required style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                </div>
+                
+                <div id="login-error" style="color: #ff4b4b; font-size: 13px; margin-bottom: 20px; display: none;">
+                    <i class="ri-error-warning-line"></i> Credenciales incorrectas
+                </div>
+
+                <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                    Identificarse <i class="ri-shield-user-line"></i>
+                </button>
+            </form>
             
-            <button id="btn-login" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 600;">
-                Acceder al Dashboard <i class="ri-arrow-right-line"></i>
-            </button>
+            <p style="font-size: 11px; margin-top: 30px; opacity: 0.4;">
+                Acceso restringido según SDD v1.1 | Gerardo Tezza
+            </p>
         </div>
     </div>
 

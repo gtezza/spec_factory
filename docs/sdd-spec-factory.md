@@ -1,73 +1,54 @@
-# Documento de Diseño de Software (SDD): Spec Factory
+# Software Design Document (SDD) - Spec Factory
 
-Este documento define la arquitectura y las especificaciones técnicas para el proyecto **Spec Factory**, una plataforma diseñada para automatizar la creación de especificaciones funcionales IEEE 830 con capacidades de IA y búsqueda semántica.
+**Proyecto**: Spec Factory - Sistema de Automatización de Especificaciones IEEE 830
+**Autor**: Gerardo Tezza
+**Rol**: Creador / Aprobador
+**Sector**: Operaciones
+**Versión**: 1.1
+**Control de Cambios**: Implementación de módulo de seguridad, autenticación real y control de acceso por roles (admin, creador, aprovador, visor).
+**Objetivo**: Garantizar la seguridad de la información almacenada, impidiendo accesos malintencionados mediante un sistema robusto de autenticación y control de acceso por roles.
 
-## Capa 1: Requisitos Funcionales (SRS)
-Basado en la norma **IEEE 830**, el sistema debe permitir:
-- **Conversión de Live Coding**: Tomar código fuente y generar una descripción funcional estructurada.
-- **Gestión de Versiones**: Cada especificación tendrá un número de identificación y versión.
-- **Roles y Permisos**: Acceso granular para Autores, Aprobadores y Consultores.
-- **Clasificación**: Por sector, urgencia y criticidad.
+---
 
-## Capa 2: Contratos de Interfaz (API)
-La comunicación se realizará a través de la API REST y Realtime de Supabase.
-- `GET /specifications`: Listado de especificaciones con filtros.
-- `POST /rpc/match_specifications`: Búsqueda semántica por vectores.
-- `POST /rpc/convert_code_to_spec`: Integración con Edge Functions/IA.
+## Modelo de Arquitectura de 5 Capas
 
-## Capa 3: Estructura de Datos (Data Spec)
-Base de datos: Supabase (`spec_ctrl`).
+### 1. Capa de Presentación (UI/UX)
+- **Tecnologías**: HTML5, Vanilla CSS (Glassmorphism), JavaScript ES6.
+- **Control de Acceso**: Interfaz bloqueada mediante modal de login obligatorio. No se permite la visualización de datos sin autenticación previa.
+- **Gestión de Sesión**: Las sesiones se almacenan en `sessionStorage`, garantizando que la información se elimine al cerrar la pestaña.
+- **Interrupción de Cierre**: Implementación de advertencia en el evento `beforeunload` para forzar el cierre de sesión formal.
 
-### Tablas Principales:
-- `roles`: `id`, `name` (Admin, Author, Approver, Viewer).
-- `sectors`: `id`, `name`.
-- `profiles`: `id`, `full_name`, `role_id`, `sector_id`.
-- `specifications`:
-    - `id`: UUID (Primary Key).
-    - `serial_number`: Identificador secuencial para humanos.
-    - `version`: VARCHAR.
-    - `title`: TEXT.
-    - `content`: JSONB (Contenido exhaustivo IEEE 830).
-    - `markdown`: TEXT (Representación final).
-    - `sector_id`: FK -> sectors.
-    - `author_id`: FK -> profiles.
-    - `urgency`: ENUM (Baja, Media, Alta, Crítica).
-    - `status`: ENUM (Borrador, En Revisión, Aprobada).
-    - `embedding`: VECTOR(1024) (Cohere embed-multilingual-v3.0).
+### 2. Capa de Lógica y Servicios (Backend)
+- **Servidor**: Python Flask (Puerto 5005).
+- **Controlador de Autenticación**: Endpoint `/api/login` para validación de credenciales.
+- **Middleware de Seguridad**: Validación de token en cada petición para impedir el acceso directo por URL a los datos de la API.
 
-## Capa 4: Comportamiento (BDD)
-### Escenario: Creación de Spec desde Código
-- **Dado** que un desarrollador tiene un bloque de código funcional.
-- **Cuando** solicita la conversión a especificación IEEE 830.
-- **Entonces** el sistema debe generar un borrador completando las secciones 1, 2 y 3 del template.
+### 3. Capa de Datos (Persistencia)
+- **Base de Datos**: Supabase (PostgreSQL).
+- **Gestión de Roles**:
+    - `admin`: Acceso total al sistema y gestión de usuarios.
+    - `creador`: Capacidad de generar y editar especificaciones.
+    - `aprovador`: Capacidad de validar y aprobar documentos.
+    - `visor`: Acceso de solo lectura a las especificaciones aprobadas.
+- **Seguridad**: Row Level Security (RLS) activo para filtrar datos según el rol del usuario.
 
-## Capa 5: Flujo de Datos
-1.  **Ingesta**: El código se envía a **Groq (Llama 3.3 70B)** para una conversión estructurada.
-2.  **Procesamiento**: La IA mapea la lógica a secciones exhaustivas de la norma IEEE 830.
-3.  **Vectorización**: Se utiliza **Cohere (embed-multilingual-v3.0)** para vectores de 1024 dimensiones.
-4.  **Almacenamiento**: Se guarda en Supabase usando `service_role` para evitar bloqueos de seguridad.
-5.  **Consumo**: Búsqueda semántica mediante comparaciones vectoriales en el dashboard.
+### 4. Capa de Inteligencia Artificial (IA)
+- **Generación**: Integración con Groq Cloud (Llama-3.3-70b).
+- **Vectores**: Embeddings de Cohere para búsqueda semántica de requerimientos históricos.
 
-## Capa 6: Infraestructura y Despliegue
-- **Backend**: Microservicio en Python/Flask (puerto 5005).
-- **Frontend**: SPA con HTML5, CSS3 (Glassmorphism) y JS Vanilla (puerto 8000).
-- **Base de Datos**: Supabase (PostgreSQL + pgvector).
-- **IA**:
-    - Generación: Groq Cloud (Llama-3.3-70b-versatile).
-    - Embeddings: Cohere API (embed-multilingual-v3.0).
-- **Exportación**: `html2pdf.js` y `PptxGenJS`.
+### 5. Capa de Seguridad y Resiliencia
+- **Autenticación**: Usuario de prueba `admin/admin` pre-cargado.
+- **Protección de Sesión**: Cierre automático y destrucción de tokens al finalizar la interacción.
+- **Mensajería**: Notificaciones elegantes pero estrictas para el cumplimiento del flujo de cierre de sesión.
 
-## Capa 7: Verificación y Validación
-- [x] **Prueba de Pipeline**: Código -> Groq -> Cohere -> Supabase.
-- [x] **Prueba de Búsqueda**: Query -> Vector Search -> Dashboard.
-- [x] **Prueba de Exportación**: Generación de PDF sin estilos oscuros (Clean Style).
-- [x] **Seguridad**: Bypass de RLS en backend mediante `service_role`.
+---
 
-## Checklist de Tareas Faltantes
-- [x] **Estabilización de Pipeline**: Conectar todos los componentes.
-- [x] **Búsqueda Semántica**: Implementar RPC y búsqueda en el frontend.
-- [x] **Export Manager**: Corregir exportación PDF/PPTX.
-- [ ] **Gestión de Versiones**: Implementar lógica para crear versiones (v1.1, v1.2) de una misma spec.
-- [ ] **Filtros Avanzados**: Filtrar dashboard por sector y urgencia de forma dinámica.
-- [ ] **Autenticación UI**: Pantalla de login integrada con perfiles de Supabase.
-- [ ] **Mantenimiento**: Scripts de limpieza de vectores antiguos.
+## Control de Cambios y Versiones
+- **v1.0**: Estructura básica y generación de specs.
+- **v1.1**: Implementación de Seguridad, Roles y Gestión de Sesiones (Actual).
+
+## Registro de Tareas de Seguridad
+- [ ] Implementar `beforeunload` con mensaje de seguridad en `app.js`.
+- [ ] Crear endpoint `/api/login` en `api.py`.
+- [ ] Configurar tabla de roles y perfiles en Supabase (`SQL/06_security_init.sql`).
+- [ ] Bloquear acceso a vistas de Dashboard si no hay sesión activa.

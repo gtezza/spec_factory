@@ -2,21 +2,48 @@ import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import json
-from spec_converter import convert_code_to_spec, save_specification, search_specifications
 from dotenv import load_dotenv
+from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user
 
 load_dotenv(dotenv_path='env/.env')
 
-app = Flask(__name__)
-CORS(app) # Permitir peticiones desde el frontend
+# Configuración de rutas absolutas para evitar fallos en Windows
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+
+app = Flask(__name__, static_folder=ROOT_DIR, static_url_path='')
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 @app.route('/')
-def index():
+def serve_index():
+    return send_from_directory(ROOT_DIR, 'index.html')
+
+@app.route('/api/health')
+def health():
     return jsonify({"status": "online", "message": "Spec Factory API is running"}), 200
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"error": "Email y contraseña requeridos"}), 400
+
+        user = validate_user(email, password)
+        if user:
+            return jsonify({"status": "success", "user": user}), 200
+        else:
+            return jsonify({"error": "Credenciales inválidas"}), 401
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/convert', methods=['POST'])
 def convert():

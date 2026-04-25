@@ -112,47 +112,104 @@
         }
     });
 
-    // Gestión de Login
+    // === SISTEMA DE SEGURIDAD Y AUTH ===
     const modalLogin = document.getElementById('modal-login');
-    const btnOpenLogin = document.getElementById('btn-open-login');
-    const btnLoginAction = document.getElementById('btn-login');
-    const inputUserName = document.getElementById('user-name');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const btnLogout = document.getElementById('btn-logout');
+    const userInfoArea = document.getElementById('user-info');
+    const headerUserName = document.getElementById('header-user-name');
+    const headerUserRole = document.getElementById('header-user-role');
 
-    btnOpenLogin?.addEventListener('click', () => {
-        modalLogin.classList.add('active');
-    });
+    function updateAuthUI(user) {
+        if (user) {
+            currentUser = user;
+            modalLogin.style.display = 'none';
+            userInfoArea.style.display = 'block';
+            btnLogout.style.display = 'block';
+            headerUserName.innerText = user.full_name;
+            headerUserRole.innerText = user.role_name;
 
-    btnLoginAction?.addEventListener('click', async () => {
-        const name = inputUserName.value.trim();
-        if (!name) return alert('Ingresa tu nombre');
+            // Control de Roles en UI
+            if (user.role_name === 'visor') {
+                btnNewSpec.style.display = 'none';
+                document.getElementById('nav-create').style.display = 'none';
+            } else {
+                btnNewSpec.style.display = 'flex';
+                document.getElementById('nav-create').style.display = 'flex';
+            }
+        } else {
+            currentUser = null;
+            modalLogin.style.display = 'flex';
+            userInfoArea.style.display = 'none';
+            btnLogout.style.display = 'none';
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const btnSubmit = document.getElementById('btn-login-submit');
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Validando...';
+        loginError.style.display = 'none';
 
         try {
-            // Buscar si existe el perfil, si no crearlo
-            const { data: existing, error: searchError } = await sbClient
-                .from('profiles')
-                .select('*')
-                .ilike('full_name', name)
-                .single();
+            const response = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
 
-            if (existing) {
-                currentUser = existing;
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                sessionStorage.setItem('sf_session', JSON.stringify(data.user));
+                updateAuthUI(data.user);
+                loadDashboardStats();
+                loadRecentSpecs();
             } else {
-                const { data: newUser, error: createError } = await sbClient
-                    .from('profiles')
-                    .insert([{ full_name: name, role_id: '88888888-8888-8888-8888-888888888888' }]) // Default a Analyst si existe el seed
-                    .select()
-                    .single();
-                
-                if (createError) throw createError;
-                currentUser = newUser;
+                loginError.style.display = 'block';
+                loginError.innerText = data.error || 'Credenciales inválidas';
             }
+        } catch (err) {
+            loginError.style.display = 'block';
+            loginError.innerText = 'Error de conexión con el servidor';
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Identificarse <i class="ri-shield-user-line"></i>';
+        }
+    }
 
-            btnOpenLogin.innerHTML = `<i class="ri-user-smile-line"></i> Hola, ${currentUser.full_name.split(' ')[0]}`;
-            modalLogin.classList.remove('active');
-            alert(`Bienvenido, ${currentUser.full_name}`);
-        } catch (e) {
-            console.error('Error login:', e);
-            alert('Error al identificar usuario. Verifica que la DB esté inicializada.');
+    function handleLogout() {
+        if (confirm('¿Está seguro que desea cerrar la sesión de seguridad?')) {
+            sessionStorage.removeItem('sf_session');
+            window.location.reload();
+        }
+    }
+
+    function checkSession() {
+        const session = sessionStorage.getItem('sf_session');
+        if (session) {
+            const user = JSON.parse(session);
+            updateAuthUI(user);
+        } else {
+            updateAuthUI(null);
+        }
+    }
+
+    loginForm?.addEventListener('submit', handleLogin);
+    btnLogout?.addEventListener('click', handleLogout);
+
+    // Aviso de cierre estricto (Solicitado por Gerardo Tezza)
+    window.addEventListener('beforeunload', (e) => {
+        if (currentUser) {
+            const msg = "SEGURIDAD: Debe cerrar la sesión formalmente desde el botón 'Salir'. El cierre forzado puede comprometer la integridad de la información.";
+            e.preventDefault();
+            e.returnValue = msg;
+            return msg;
         }
     });
 
@@ -340,18 +397,12 @@
 
     // Inicialización
     window.addEventListener('DOMContentLoaded', () => {
+        checkSession(); // Validar seguridad primero
         loadSectors();
         loadDashboardStats();
         loadRecentSpecs();
         if (window.ExportManager) window.ExportManager.init();
         
-        // Auto-abrir login si es necesario
-        if (!currentUser) {
-            setTimeout(() => {
-                modalLogin?.classList.add('active');
-            }, 1000);
-        }
-        
-        console.log('Spec Factory inicializado.');
+        console.log('Spec Factory inicializado con protocolo de seguridad v1.1');
     });
 })();
