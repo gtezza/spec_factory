@@ -14,6 +14,10 @@ load_dotenv(dotenv_path='env/.env')
 app = Flask(__name__)
 CORS(app) # Permitir peticiones desde el frontend
 
+@app.route('/')
+def index():
+    return jsonify({"status": "online", "message": "Spec Factory API is running"}), 200
+
 @app.route('/api/convert', methods=['POST'])
 def convert():
     try:

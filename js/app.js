@@ -80,7 +80,7 @@
                 resultsContainer.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h3 style="margin:0"><i class="ri-search-line"></i> ${data.count} resultado(s) para "${query}"</h3>
-                        <button onclick="document.getElementById('search-results').style.display='none';document.getElementById('semantic-search').value='';" 
+                        <button onclick="document.getElementById('search-results').style.display='none';" 
                             style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
                     </div>
                     <table class="data-table">
@@ -156,10 +156,8 @@
         }
     });
 
-    // Cerrar modal al hacer click fuera
-    window.addEventListener('click', (e) => {
-        if (e.target === modalLogin) modalLogin.classList.remove('active');
-    });
+    // El modal de login ahora solo se cierra con el botón de Acceder
+    // para evitar que se cierre accidentalmente mientras escribes
 
     // Conversión de Código
     const btnConvert = document.getElementById('btn-convert');
