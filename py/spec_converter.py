@@ -95,7 +95,7 @@ def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
     return spec_json
 
 def save_specification(spec_data, author_id, sector_id, urgency='Media'):
-    """Guarda la especificación en Supabase con su embedding de Cohere."""
+    """Guarda la especificación en Supabase con su embedding y manejo de versiones."""
     
     text_for_embedding = (
         f"{spec_data['title']} "
@@ -108,18 +108,33 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
     except Exception as e:
         print(f"[WARN] Embedding no disponible, se guardara sin vector: {e}")
         embedding = None
+
+    # Lógica de Versionado
+    current_version = "1.0"
+    existing = supabase.table("specifications")\
+        .select("version")\
+        .eq("title", spec_data['title'])\
+        .eq("sector_id", sector_id)\
+        .order("version", desc=True)\
+        .limit(1).execute()
     
+    if existing.data:
+        try:
+            last_v = float(existing.data[0]['version'])
+            current_version = str(round(last_v + 0.1, 1))
+        except:
+            current_version = "1.1"
+
     data = {
         "title": spec_data['title'],
         "content": spec_data,
         "author_id": author_id,
         "sector_id": sector_id,
         "urgency": urgency,
-        "status": 'Borrador'
+        "status": "Borrador",
+        "version": current_version,
+        "embedding": embedding
     }
-    
-    if embedding is not None:
-        data["embedding"] = embedding
     
     result = supabase.table("specifications").insert(data).execute()
     return result.data

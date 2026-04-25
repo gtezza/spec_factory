@@ -51,7 +51,10 @@
                     <i class="ri-search-line"></i>
                     <input type="text" id="semantic-search" placeholder="Búsqueda semántica (ej. auth, reportes)...">
                 </div>
-                <div class="user-profile">
+                <div class="user-profile" style="display: flex; gap: 10px;">
+                    <button class="btn glass" id="btn-open-login" style="border: 1px solid rgba(255,255,255,0.1);">
+                        <i class="ri-user-line"></i> Identificarse
+                    </button>
                     <button class="btn btn-primary" id="btn-new-spec">
                         <i class="ri-add-line"></i> Nueva Spec
                     </button>
@@ -60,6 +63,31 @@
 
             <!-- Dynamic Sections -->
             <section id="dashboard-view">
+                <!-- Barra de Filtros -->
+                <div class="glass" style="margin-bottom: 20px; padding: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Filtrar por Sector</label>
+                        <select id="filter-sector" class="glass" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="all">Todos los Sectores</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Filtrar por Urgencia</label>
+                        <select id="filter-urgency" class="glass" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="all">Todas las Urgencias</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Crítica">Crítica</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end; height: 100%; padding-top: 20px;">
+                        <button id="btn-apply-filters" class="btn btn-primary" style="padding: 8px 20px;">
+                            <i class="ri-filter-3-line"></i> Aplicar
+                        </button>
+                    </div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card glass">
                         <span class="stat-value" id="count-total">0</span>
@@ -79,20 +107,19 @@
                 <div id="search-results" class="glass" style="display:none; margin-top:20px; padding:20px;"></div>
 
                 <div class="glass" style="margin-top: 20px; padding: 20px;">
-                    <h3>Specs Recientes</h3>
-                    <table class="data-table">
+                    <h3>Especificaciones Recientes</h3>
+                    <table class="data-table" id="recent-specs-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Título</th>
-                                <th>Sector</th>
-                                <th>Versión</th>
+                                <th>Título y Sector</th>
+                                <th>Analista</th>
+                                <th>Urgencia</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="specs-table-body">
-                            <!-- Data will be injected here -->
+                        <tbody>
+                            <!-- Se inyecta dinámicamente -->
                         </tbody>
                     </table>
                 </div>
@@ -163,6 +190,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Modal de Acceso (Login Simulado) -->
+    <div id="modal-login" class="modal-overlay" style="display: none;">
+        <div class="glass" style="width: 400px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: 800; margin-bottom: 10px;">Spec Factory</div>
+            <p style="opacity: 0.7; margin-bottom: 30px;">Ingreso al Sistema de Especificaciones IA</p>
+            
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Nombre del Analista</label>
+                <input type="text" id="user-name" class="glass" value="Analista Spec Factory" style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+            
+            <button id="btn-login" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 600;">
+                Acceder al Dashboard <i class="ri-arrow-right-line"></i>
+            </button>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script src="js/export_manager.js"></script>
     <script src="js/app.js"></script>

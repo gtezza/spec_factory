@@ -15,6 +15,8 @@
         'create-view': document.getElementById('create-view'),
     };
 
+    let currentUser = null; // Guardará el objeto de perfil del usuario logueado
+
     function switchView(viewId) {
         console.log('Cambiando a vista:', viewId);
         
@@ -82,12 +84,13 @@
                             style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
                     </div>
                     <table class="data-table">
-                        <thead><tr><th>Título</th><th>Urgencia</th><th>Similitud</th></tr></thead>
+                        <thead><tr><th>Título</th><th>Urgencia</th><th>Versión</th><th>Similitud</th></tr></thead>
                         <tbody>
                             ${data.results.map(r => `
                                 <tr>
                                     <td>${r.title}</td>
                                     <td><span class="badge">${r.urgency || 'Media'}</span></td>
+                                    <td>v${r.version || '1.0'}</td>
                                     <td><strong>${Math.round(r.similarity * 100)}%</strong></td>
                                 </tr>
                             `).join('')}
@@ -107,6 +110,55 @@
         } catch (err) {
             resultsContainer.innerHTML = `<p style="color:var(--accent-red)">Error en la búsqueda: ${err.message}</p>`;
         }
+    });
+
+    // Gestión de Login
+    const modalLogin = document.getElementById('modal-login');
+    const btnOpenLogin = document.getElementById('btn-open-login');
+    const btnLoginAction = document.getElementById('btn-login');
+    const inputUserName = document.getElementById('user-name');
+
+    btnOpenLogin?.addEventListener('click', () => {
+        modalLogin.classList.add('active');
+    });
+
+    btnLoginAction?.addEventListener('click', async () => {
+        const name = inputUserName.value.trim();
+        if (!name) return alert('Ingresa tu nombre');
+
+        try {
+            // Buscar si existe el perfil, si no crearlo
+            const { data: existing, error: searchError } = await sbClient
+                .from('profiles')
+                .select('*')
+                .ilike('full_name', name)
+                .single();
+
+            if (existing) {
+                currentUser = existing;
+            } else {
+                const { data: newUser, error: createError } = await sbClient
+                    .from('profiles')
+                    .insert([{ full_name: name, role_id: '88888888-8888-8888-8888-888888888888' }]) // Default a Analyst si existe el seed
+                    .select()
+                    .single();
+                
+                if (createError) throw createError;
+                currentUser = newUser;
+            }
+
+            btnOpenLogin.innerHTML = `<i class="ri-user-smile-line"></i> Hola, ${currentUser.full_name.split(' ')[0]}`;
+            modalLogin.classList.remove('active');
+            alert(`Bienvenido, ${currentUser.full_name}`);
+        } catch (e) {
+            console.error('Error login:', e);
+            alert('Error al identificar usuario. Verifica que la DB esté inicializada.');
+        }
+    });
+
+    // Cerrar modal al hacer click fuera
+    window.addEventListener('click', (e) => {
+        if (e.target === modalLogin) modalLogin.classList.remove('active');
     });
 
     // Conversión de Código
@@ -129,7 +181,8 @@
                 body: JSON.stringify({ 
                     code: code,
                     projectName: "Spec Generada",
-                    urgency: 'Media'
+                    urgency: 'Media',
+                    authorId: currentUser?.id || null
                 })
             });
 
@@ -175,12 +228,44 @@
         ExportManager.openModal();
     });
 
-    // Carga Inicial de Datos
-    async function loadDashboardStats() {
+    // Carga de Sectores para Filtros
+    async function loadSectors() {
+        const sectorSelect = document.getElementById('filter-sector');
+        if (!sectorSelect || !sbClient) return;
+
+        try {
+            const { data, error } = await sbClient.from('sectors').select('id, name').order('name');
+            if (error) throw error;
+
+            data.forEach(sector => {
+                const opt = document.createElement('option');
+                opt.value = sector.id;
+                opt.textContent = sector.name;
+                sectorSelect.appendChild(opt);
+            });
+        } catch (e) {
+            console.warn('Error cargando sectores para filtros:', e);
+        }
+    }
+
+    // Carga Inicial de Datos con Filtros
+    async function loadDashboardStats(filters = {}) {
         if (!sbClient) return;
         try {
-            const { count: total } = await sbClient.from('specifications').select('*', { count: 'exact', head: true });
-            const { count: approved } = await sbClient.from('specifications').select('*', { count: 'exact', head: true }).eq('status', 'Aprobada');
+            let queryTotal = sbClient.from('specifications').select('*', { count: 'exact', head: true });
+            let queryApproved = sbClient.from('specifications').select('*', { count: 'exact', head: true }).eq('status', 'Aprobada');
+
+            if (filters.sector && filters.sector !== 'all') {
+                queryTotal = queryTotal.eq('sector_id', filters.sector);
+                queryApproved = queryApproved.eq('sector_id', filters.sector);
+            }
+            if (filters.urgency && filters.urgency !== 'all') {
+                queryTotal = queryTotal.eq('urgency', filters.urgency);
+                queryApproved = queryApproved.eq('urgency', filters.urgency);
+            }
+
+            const { count: total } = await queryTotal;
+            const { count: approved } = await queryApproved;
             
             if (document.getElementById('count-total')) document.getElementById('count-total').innerText = total || 0;
             if (document.getElementById('count-approved')) document.getElementById('count-approved').innerText = approved || 0;
@@ -190,10 +275,85 @@
         }
     }
 
+    // Carga de Tabla de Specs Recientes
+    async function loadRecentSpecs(filters = {}) {
+        const tableBody = document.querySelector('#recent-specs-table tbody');
+        if (!tableBody || !sbClient) return;
+
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;opacity:0.6;"><i class="ri-loader-4-line ri-spin"></i> Cargando especificaciones...</td></tr>';
+
+        try {
+            let query = sbClient
+                .from('specifications')
+                .select(`
+                    id, 
+                    title, 
+                    urgency, 
+                    status, 
+                    version,
+                    profiles(full_name),
+                    sectors(name)
+                `)
+                .order('version', { ascending: false }) // Versiones más recientes primero
+                .order('title', { ascending: true })
+                .limit(20);
+
+            if (filters.sector && filters.sector !== 'all') query = query.eq('sector_id', filters.sector);
+            if (filters.urgency && filters.urgency !== 'all') query = query.eq('urgency', filters.urgency);
+
+            const { data, error } = await query;
+            if (error) throw error;
+
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;opacity:0.6;">No se encontraron especificaciones.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = data.map(spec => `
+                <tr>
+                    <td>
+                        <div style="font-weight:500;">${spec.title}</div>
+                        <div style="font-size:11px; opacity:0.6;">v${spec.version || '1.0'} | ${spec.sectors?.name || 'Gral'}</div>
+                    </td>
+                    <td>${spec.profiles?.full_name || 'IA System'}</td>
+                    <td><span class="badge ${spec.urgency === 'Alta' ? 'badge-high' : ''}">${spec.urgency}</span></td>
+                    <td><span class="status-dot ${spec.status === 'Aprobada' ? 'status-approved' : 'status-draft'}"></span> ${spec.status}</td>
+                    <td>
+                        <button class="btn-icon" title="Ver" onclick="alert('Funcionalidad de visor en desarrollo')"><i class="ri-eye-line"></i></button>
+                        <button class="btn-icon" title="Exportar" onclick="window.ExportManager.openModal()"><i class="ri-share-forward-line"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error cargando tabla:', e);
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--accent-red);">Error al cargar datos.</td></tr>';
+        }
+    }
+
+    // Aplicar Filtros
+    document.getElementById('btn-apply-filters')?.addEventListener('click', () => {
+        const filters = {
+            sector: document.getElementById('filter-sector').value,
+            urgency: document.getElementById('filter-urgency').value
+        };
+        loadDashboardStats(filters);
+        loadRecentSpecs(filters);
+    });
+
     // Inicialización
     window.addEventListener('DOMContentLoaded', () => {
+        loadSectors();
         loadDashboardStats();
+        loadRecentSpecs();
         if (window.ExportManager) window.ExportManager.init();
+        
+        // Auto-abrir login si es necesario
+        if (!currentUser) {
+            setTimeout(() => {
+                modalLogin?.classList.add('active');
+            }, 1000);
+        }
+        
         console.log('Spec Factory inicializado.');
     });
 })();

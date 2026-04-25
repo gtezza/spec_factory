@@ -47,3 +47,27 @@ Base de datos: Supabase (`spec_ctrl`).
 3.  **Vectorización**: Se utiliza **Cohere (embed-multilingual-v3.0)** para vectores de 1024 dimensiones.
 4.  **Almacenamiento**: Se guarda en Supabase usando `service_role` para evitar bloqueos de seguridad.
 5.  **Consumo**: Búsqueda semántica mediante comparaciones vectoriales en el dashboard.
+
+## Capa 6: Infraestructura y Despliegue
+- **Backend**: Microservicio en Python/Flask (puerto 5005).
+- **Frontend**: SPA con HTML5, CSS3 (Glassmorphism) y JS Vanilla (puerto 8000).
+- **Base de Datos**: Supabase (PostgreSQL + pgvector).
+- **IA**:
+    - Generación: Groq Cloud (Llama-3.3-70b-versatile).
+    - Embeddings: Cohere API (embed-multilingual-v3.0).
+- **Exportación**: `html2pdf.js` y `PptxGenJS`.
+
+## Capa 7: Verificación y Validación
+- [x] **Prueba de Pipeline**: Código -> Groq -> Cohere -> Supabase.
+- [x] **Prueba de Búsqueda**: Query -> Vector Search -> Dashboard.
+- [x] **Prueba de Exportación**: Generación de PDF sin estilos oscuros (Clean Style).
+- [x] **Seguridad**: Bypass de RLS en backend mediante `service_role`.
+
+## Checklist de Tareas Faltantes
+- [x] **Estabilización de Pipeline**: Conectar todos los componentes.
+- [x] **Búsqueda Semántica**: Implementar RPC y búsqueda en el frontend.
+- [x] **Export Manager**: Corregir exportación PDF/PPTX.
+- [ ] **Gestión de Versiones**: Implementar lógica para crear versiones (v1.1, v1.2) de una misma spec.
+- [ ] **Filtros Avanzados**: Filtrar dashboard por sector y urgencia de forma dinámica.
+- [ ] **Autenticación UI**: Pantalla de login integrada con perfiles de Supabase.
+- [ ] **Mantenimiento**: Scripts de limpieza de vectores antiguos.
