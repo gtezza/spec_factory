@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import json
-from spec_converter import convert_code_to_spec, save_specification
+from spec_converter import convert_code_to_spec, save_specification, search_specifications
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path='env/.env')
@@ -45,6 +45,23 @@ def convert():
             "db_result": db_result,
             "db_warning": db_warning
         })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/search', methods=['POST'])
+def search():
+    try:
+        data = request.json
+        query = data.get('query', '').strip()
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
+
+        threshold = data.get('threshold', 0.4)
+        max_results = data.get('maxResults', 5)
+
+        results = search_specifications(query, threshold, max_results)
+        return jsonify({"status": "success", "results": results, "count": len(results)})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

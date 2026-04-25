@@ -56,10 +56,56 @@
     // Búsqueda Semántica
     const searchInput = document.getElementById('semantic-search');
     searchInput?.addEventListener('keypress', async (e) => {
-        if (e.key === 'Enter') {
-            const query = searchInput.value;
-            console.log('Buscando semánticamente:', query);
-            alert('Funcionalidad de búsqueda semántica: Requiere que los vectores estén generados en el backend.');
+        if (e.key !== 'Enter') return;
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        const resultsContainer = document.getElementById('search-results');
+        if (!resultsContainer) return;
+
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = `<p style="opacity:0.6"><i class="ri-loader-4-line ri-spin"></i> Buscando "${query}"...</p>`;
+
+        try {
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/search`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, threshold: 0.35, maxResults: 6 })
+            });
+            const data = await res.json();
+
+            if (data.status === 'success' && data.results.length > 0) {
+                resultsContainer.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h3 style="margin:0"><i class="ri-search-line"></i> ${data.count} resultado(s) para "${query}"</h3>
+                        <button onclick="document.getElementById('search-results').style.display='none';document.getElementById('semantic-search').value='';" 
+                            style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;">✕</button>
+                    </div>
+                    <table class="data-table">
+                        <thead><tr><th>Título</th><th>Urgencia</th><th>Similitud</th></tr></thead>
+                        <tbody>
+                            ${data.results.map(r => `
+                                <tr>
+                                    <td>${r.title}</td>
+                                    <td><span class="badge">${r.urgency || 'Media'}</span></td>
+                                    <td><strong>${Math.round(r.similarity * 100)}%</strong></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
+            } else {
+                resultsContainer.innerHTML = `
+                    <p style="opacity:0.6; text-align:center; padding:20px;">
+                        <i class="ri-search-line" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                        Sin resultados para "<strong>${query}</strong>". Intentá con otros términos.
+                        <button onclick="document.getElementById('search-results').style.display='none';" 
+                            style="display:block;margin:12px auto 0;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:6px;cursor:pointer;">
+                            Cerrar
+                        </button>
+                    </p>`;
+            }
+        } catch (err) {
+            resultsContainer.innerHTML = `<p style="color:var(--accent-red)">Error en la búsqueda: ${err.message}</p>`;
         }
     });
 

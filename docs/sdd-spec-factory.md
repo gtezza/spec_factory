@@ -27,15 +27,13 @@ Base de datos: Supabase (`spec_ctrl`).
     - `serial_number`: Identificador secuencial para humanos.
     - `version`: VARCHAR.
     - `title`: TEXT.
-    - `content`: JSONB (Contenido estructurado IEEE 830).
+    - `content`: JSONB (Contenido exhaustivo IEEE 830).
     - `markdown`: TEXT (Representación final).
     - `sector_id`: FK -> sectors.
     - `author_id`: FK -> profiles.
-    - `approver_id`: FK -> profiles.
     - `urgency`: ENUM (Baja, Media, Alta, Crítica).
-    - `criticality`: ENUM (Baja, Media, Alta, Crítica).
     - `status`: ENUM (Borrador, En Revisión, Aprobada).
-    - `embedding`: VECTOR(1536) (Para búsqueda semántica).
+    - `embedding`: VECTOR(1024) (Cohere embed-multilingual-v3.0).
 
 ## Capa 4: Comportamiento (BDD)
 ### Escenario: Creación de Spec desde Código
@@ -44,8 +42,8 @@ Base de datos: Supabase (`spec_ctrl`).
 - **Entonces** el sistema debe generar un borrador completando las secciones 1, 2 y 3 del template.
 
 ## Capa 5: Flujo de Datos
-1.  **Ingesta**: El código se envía al motor de inferencia **Groq (Free Tier)** para una conversión veloz y gratuita.
-2.  **Procesamiento**: La IA extrae lógica, entradas y salidas mapeándolas al template IEEE 830.
-3.  **Vectorización**: Se utiliza **Gemini Embeddings (Free Tier)** para convertir el texto en un vector.
-4.  **Almacenamiento**: Se guarda en Supabase (`spec_ctrl`) con metadatos y el embedding generado.
-5.  **Consumo**: Búsqueda semántica a través de consultas vectoriales en el dashboard.
+1.  **Ingesta**: El código se envía a **Groq (Llama 3.3 70B)** para una conversión estructurada.
+2.  **Procesamiento**: La IA mapea la lógica a secciones exhaustivas de la norma IEEE 830.
+3.  **Vectorización**: Se utiliza **Cohere (embed-multilingual-v3.0)** para vectores de 1024 dimensiones.
+4.  **Almacenamiento**: Se guarda en Supabase usando `service_role` para evitar bloqueos de seguridad.
+5.  **Consumo**: Búsqueda semántica mediante comparaciones vectoriales en el dashboard.

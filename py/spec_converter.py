@@ -35,34 +35,51 @@ def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
     
     prompt = f"""
     Actúa como un Analista de Sistemas Senior experto en la norma IEEE 830.
-    Convierte el siguiente bloque de código en una especificación funcional (SRS).
+    Convierte el siguiente bloque de código en una especificación funcional (SRS) profesional y detallada.
     
     CÓDIGO:
     {code_content}
     
-    RESPONDE ÚNICAMENTE EN FORMATO JSON con la siguiente estructura:
+    RESPONDE ÚNICAMENTE EN FORMATO JSON con la siguiente estructura extendida:
     {{
-        "title": "Título de la especificación",
+        "title": "Título descriptivo del módulo",
         "introduction": {{
-            "purpose": "Propósito del documento",
-            "scope": "Alcance del producto"
+            "purpose": "Propósito detallado",
+            "scope": "Alcance específico del código proporcionado",
+            "definitions": ["Término 1: Definición", "Término 2: Definición"]
         }},
         "product_overview": {{
-            "perspective": "Perspectiva del producto",
-            "functions": ["Función 1", "Función 2"],
-            "constraints": ["Restricción 1"]
+            "perspective": "Cómo encaja este código en un sistema mayor",
+            "functions": ["Lista detallada de capacidades lógicas"],
+            "user_characteristics": "Perfil del usuario que interactúa con esta lógica",
+            "constraints": ["Limitaciones técnicas, de memoria o de seguridad"],
+            "assumptions": ["Supuestos sobre el entorno de ejecución"]
+        }},
+        "external_interfaces": {{
+            "user_interfaces": "Descripción de la interacción UI esperada",
+            "software_interfaces": "Dependencias, APIs o librerías utilizadas",
+            "communication_interfaces": "Protocolos (HTTP, WebSockets, etc.)"
         }},
         "requirements": {{
             "functional": [
-                {{ "id": "REQ-001", "statement": "El sistema debe..." }}
+                {{ "id": "REQ-001", "name": "Nombre corto", "statement": "Descripción del requerimiento funcional" }}
             ],
             "non_functional": [
-                {{ "id": "REQ-QOS-001", "statement": "Latencia menor a..." }}
+                {{ "id": "REQ-QOS-001", "type": "Rendimiento/Seguridad/Disponibilidad", "statement": "Métrica o restricción" }}
             ]
+        }},
+        "data_model": {{
+            "entities": ["Estructura de datos 1", "Estructura de datos 2"],
+            "logic_description": "Explicación del flujo de datos principal"
+        }},
+        "system_attributes": {{
+            "reliability": "Nivel de confianza esperado",
+            "maintainability": "Facilidad de cambios según el código",
+            "portability": "Entornos compatibles"
         }}
     }}
     
-    Todo el contenido debe estar en ESPAÑOL.
+    Todo el contenido debe estar en ESPAÑOL y ser técnicamente riguroso.
     """
     
     chat_completion = groq_client.chat.completions.create(
@@ -105,6 +122,27 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
         data["embedding"] = embedding
     
     result = supabase.table("specifications").insert(data).execute()
+    return result.data
+
+def search_specifications(query_text, threshold=0.4, max_results=5):
+    """Busca specs semánticamente similares a la consulta de texto."""
+    
+    # Para búsquedas usar input_type="search_query" (no "search_document")
+    response = cohere_client.embed(
+        texts=[query_text],
+        model="embed-multilingual-v3.0",
+        input_type="search_query",
+        embedding_types=["float"]
+    )
+    query_embedding = response.embeddings.float[0]
+    print(f"[OK] Embedding de consulta generado ({len(query_embedding)} dims).")
+    
+    result = supabase.rpc("match_specifications", {
+        "query_embedding": query_embedding,
+        "match_threshold": threshold,
+        "match_count": max_results
+    }).execute()
+    
     return result.data
 
 if __name__ == "__main__":
