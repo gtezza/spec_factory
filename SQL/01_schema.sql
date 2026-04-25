@@ -53,14 +53,14 @@ CREATE TABLE IF NOT EXISTS specifications (
     urgency urgency_level DEFAULT 'Media',
     criticality criticality_level DEFAULT 'Media',
     status spec_status DEFAULT 'Borrador',
-    embedding vector(1536), -- Vector de 1536 dimensiones (Gemini/OpenAI)
+    embedding vector(768), -- Vector de 768 dimensiones (Gemini)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Función para búsqueda semántica
 CREATE OR REPLACE FUNCTION match_specifications (
-  query_embedding vector(1536),
+  query_embedding vector(768),
   match_threshold float,
   match_count int
 )

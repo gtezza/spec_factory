@@ -1,7 +1,7 @@
 import os
 import json
+import cohere
 from groq import Groq
-import google.generativeai as genai
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -9,17 +9,23 @@ load_dotenv(dotenv_path='env/.env')
 
 # Configuración de Clientes
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 def get_embedding(text):
-    """Genera un vector de embedding usando Gemini."""
-    result = genai.embed_content(
-        model="models/embedding-001",
-        content=text,
-        task_type="retrieval_document"
+    """
+    Genera un vector de embedding usando Cohere embed-multilingual-v3.0.
+    Produce vectores de 1024 dimensiones, con soporte nativo para español.
+    """
+    response = cohere_client.embed(
+        texts=[text],
+        model="embed-multilingual-v3.0",
+        input_type="search_document",
+        embedding_types=["float"]
     )
-    return result['embedding']
+    embedding = response.embeddings.float[0]
+    print(f"✅ Embedding Cohere generado correctamente ({len(embedding)} dimensiones).")
+    return embedding
 
 def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
     """Convierte código fuente en una especificación IEEE 830 usando Groq."""
@@ -69,11 +75,19 @@ def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
     return spec_json
 
 def save_specification(spec_data, author_id, sector_id, urgency='Media'):
-    """Guarda la especificación en Supabase con su embedding."""
+    """Guarda la especificación en Supabase con su embedding de Cohere."""
     
-    # Combinar texto para el embedding (Título + Introducción)
-    text_for_embedding = f"{spec_data['title']} {spec_data['introduction']['purpose']} {spec_data['introduction']['scope']}"
-    embedding = get_embedding(text_for_embedding)
+    text_for_embedding = (
+        f"{spec_data['title']} "
+        f"{spec_data['introduction']['purpose']} "
+        f"{spec_data['introduction']['scope']}"
+    )
+    
+    try:
+        embedding = get_embedding(text_for_embedding)
+    except Exception as e:
+        print(f"⚠️  Embedding no disponible, se guardará sin vector: {e}")
+        embedding = None
     
     data = {
         "title": spec_data['title'],
@@ -81,15 +95,16 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
         "author_id": author_id,
         "sector_id": sector_id,
         "urgency": urgency,
-        "embedding": embedding,
         "status": 'Borrador'
     }
+    
+    if embedding is not None:
+        data["embedding"] = embedding
     
     result = supabase.table("specifications").insert(data).execute()
     return result.data
 
 if __name__ == "__main__":
-    # Ejemplo de uso
     sample_code = """
     function login(user, pass) {
         if (user === 'admin' && pass === '1234') {
@@ -98,5 +113,5 @@ if __name__ == "__main__":
         throw new Error('Unauthorized');
     }
     """
-    # spec = convert_code_to_spec(sample_code)
-    # print(json.dumps(spec, indent=2, ensure_ascii=False))
+    spec = convert_code_to_spec(sample_code)
+    print(json.dumps(spec, indent=2, ensure_ascii=False))

@@ -1,6 +1,6 @@
 supabase
 groq
-google-generativeai
+cohere
 python-dotenv
 flask
 flask-cors

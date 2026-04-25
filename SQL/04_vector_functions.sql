@@ -3,7 +3,7 @@ DROP FUNCTION IF EXISTS match_specifications(vector, float, int);
 
 -- 2. Creamos la versión completa
 CREATE OR REPLACE FUNCTION match_specifications (
-  query_embedding vector(1536),
+  query_embedding vector(768),
   match_threshold float,
   match_count int
 )
