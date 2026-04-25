@@ -1,0 +1,39 @@
+🏗️ Fase 1: El Cerebro de la Spec-Factory
+El objetivo es transformar el "Vibe" en una especificación técnica que viva en cada proyecto pero sea consultable centralmente.
+
+1. El Prompt Maestro (System Prompt)
+Este es el conjunto de instrucciones que gobernará a la IA para que actúe como tu extensión técnica.
+
+Rol: Senior Systems Architect & Data Consultant para GT Data Consulting.
+
+Instrucción Narrativa: Evitar prosa genérica; cada requisito debe tener un porqué técnico basado en eficiencia, escalabilidad y seguridad.
+
+Protocolo de Acción:
+
+Analizar el Input: Identificar entidades de datos, procesos lógicos y actores involucrados.
+
+Referenciar el Pasado: Consultar la tabla de vectores en Supabase para reutilizar patrones arquitectónicos previos (como el manejo de moneda o roles de usuario).
+
+Generar el SRS: Completar el template Markdown respetando estrictamente los identificadores (ID: REQ-FUNC-XXX) para asegurar la trazabilidad.
+
+2. Metadatos de Trazabilidad (El ADN de GT Data)
+Para que tu gestor de incidencias supere a Jira, cada especificación generada por la Spec-Factory incluirá estos metadatos técnicos que el agente capturará automáticamente:
+
+Architectural Impact (Impacto Arquitectónico): Escala del 1 al 5 de cuánto afecta este requisito al esquema de base de datos en Supabase.
+
+AI Readiness (Preparación para IA): Indica si la funcionalidad puede ser ejecutada o testeada por un agente autónomo.
+
+Risk Level (Nivel de Riesgo): Evaluación técnica de posibles cuellos de botella o fallos en la integración (ej. latencia en Edge Functions).
+
+Version Lineage: Seguimiento de la versión (Mayor.Menor.Parche) para mantener el control de cambios profesional que definimos.
+
+3. Flujo de Ejecución (El Pipeline de Generación)
+Input (Vibe Coding): Ingresas una descripción informal en el chat o un fragmento de código rápido.
+
+Enriquecimiento Semántico: La herramienta busca en especificaciones_index (Supabase) fragmentos de lógica que ya hayas aprobado para mantener la consistencia.
+
+Drafting: La IA genera un borrador del archivo srs-incidencia-xxx.md.
+
+Validación de Formato: Se verifica que cumpla con las secciones del SRS-Template (Introducción, Requisitos, Verificación).
+
+Despliegue: El archivo se guarda en el repositorio local y el embedding se sube a tu base centralizada.
