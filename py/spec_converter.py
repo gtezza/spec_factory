@@ -10,7 +10,10 @@ load_dotenv(dotenv_path='env/.env')
 # Configuración de Clientes
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
-supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+# El backend usa service_role para bypasear RLS (nunca exponer al frontend)
+supabase_service_key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_service_key)
 
 def get_embedding(text):
     """
@@ -24,7 +27,7 @@ def get_embedding(text):
         embedding_types=["float"]
     )
     embedding = response.embeddings.float[0]
-    print(f"✅ Embedding Cohere generado correctamente ({len(embedding)} dimensiones).")
+    print(f"[OK] Embedding Cohere generado ({len(embedding)} dimensiones).")
     return embedding
 
 def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
@@ -86,7 +89,7 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
     try:
         embedding = get_embedding(text_for_embedding)
     except Exception as e:
-        print(f"⚠️  Embedding no disponible, se guardará sin vector: {e}")
+        print(f"[WARN] Embedding no disponible, se guardara sin vector: {e}")
         embedding = None
     
     data = {

@@ -1,3 +1,7 @@
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -26,14 +30,20 @@ def convert():
         # 1. Convertir código a Spec usando Groq
         spec_json = convert_code_to_spec(code, project_name)
         
-        # 2. Guardar en Supabase con Embeddings usando Gemini
-        # Nota: author_id y sector_id deben existir en la DB
-        result = save_specification(spec_json, author_id, sector_id, urgency)
+        # 2. Intentar guardar en Supabase con Embeddings (no bloquea el flujo)
+        db_result = None
+        db_warning = None
+        try:
+            db_result = save_specification(spec_json, author_id, sector_id, urgency)
+        except Exception as db_error:
+            db_warning = f"Spec generada pero no guardada en BD: {str(db_error)}"
+            print(f"[WARN] {db_warning}")
         
         return jsonify({
             "status": "success",
             "spec": spec_json,
-            "db_result": result
+            "db_result": db_result,
+            "db_warning": db_warning
         })
 
     except Exception as e:
