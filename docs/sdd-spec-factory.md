@@ -1,7 +1,7 @@
 # Especificación de Diseño de Software (SDD) - Spec Factory
 
 **Proyecto:** sdd-spec-factory  
-**Versión:** 1.3  
+**Versión:** 1.4  
 **Fecha:** 2026-04-25  
 **Autor:** Gerardo Tezza (Creador)  
 **Sector:** Operaciones  
@@ -12,9 +12,10 @@
 | 2026-04-25 | 1.0 | Antigravity | Estructura inicial. |
 | 2026-04-25 | 1.1 | Antigravity | Inclusión de hashing scrypt y tabla usuarios. |
 | 2026-04-25 | 1.2 | Gerardo Tezza | Ampliación: 5 capas, roles Creador/Aprovador y sesiones efímeras. |
-| 2026-04-25 | 1.3 | Antigravity | Corrección de marca: Restaurado a 'Vive Coding'. |
+| 2026-04-25 | 1.3 | Antigravity | Corrección de marca: Restaurado a 'Live Coding'. |
+| 2026-04-25 | 1.4 | Antigravity | Integración de Glosario Inteligente y Centralización de UI. |
 
-**Estado:** En Desarrollo (Ampliación de Seguridad)
+**Estado:** En Desarrollo (Ampliación de Seguridad y Glosario Semántico)
 
 ---
 

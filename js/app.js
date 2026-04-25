@@ -265,14 +265,23 @@
                     <div class="generated-spec">
                         <h2>${spec.title}</h2>
                         <p><strong>Propósito:</strong> ${spec.introduction.purpose}</p>
+                        
                         <h3>Funciones del Producto</h3>
                         <ul>
                             ${spec.product_overview.functions.map(f => `<li>${f}</li>`).join('')}
                         </ul>
+                        
                         <h3>Requisitos Funcionales</h3>
                         <ul>
                             ${spec.requirements.functional.map(r => `<li><strong>${r.id}:</strong> ${r.statement}</li>`).join('')}
                         </ul>
+
+                        ${spec.introduction.definitions && spec.introduction.definitions.length > 0 ? `
+                        <h3>Glosario / Definiciones Clave</h3>
+                        <ul>
+                            ${spec.introduction.definitions.map(d => `<li>${d}</li>`).join('')}
+                        </ul>
+                        ` : ''}
                     </div>
                 `;
                 specPreview.innerHTML = html;
@@ -525,7 +534,7 @@
 
     document.getElementById('btn-export-glossary')?.addEventListener('click', async () => {
         try {
-            const res = await fetch(\`\${APP_CONFIG.SERVER.ENDPOINT}/api/glossary/export/md\`);
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/glossary/export/md`);
             const data = await res.json();
             
             if (data.status === 'success') {
