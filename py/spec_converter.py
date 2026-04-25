@@ -15,7 +15,7 @@ supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_
 def get_embedding(text):
     """Genera un vector de embedding usando Gemini."""
     result = genai.embed_content(
-        model="models/text-embedding-004",
+        model="models/embedding-001",
         content=text,
         task_type="retrieval_document"
     )
@@ -61,7 +61,7 @@ def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
             {"role": "system", "content": "Eres un experto en IEEE 830 y devuelves solo JSON."},
             {"role": "user", "content": prompt}
         ],
-        model="llama3-70b-8192",
+        model="llama-3.3-70b-versatile",
         response_format={"type": "json_object"}
     )
     
