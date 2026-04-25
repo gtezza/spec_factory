@@ -1,10 +1,18 @@
 -- Habilitar la extensión pgvector
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Tipos enumerados para Urgencia y Criticidad
-CREATE TYPE urgency_level AS ENUM ('Baja', 'Media', 'Alta', 'Crítica');
-CREATE TYPE criticality_level AS ENUM ('Baja', 'Media', 'Alta', 'Crítica');
-CREATE TYPE spec_status AS ENUM ('Borrador', 'En Revisión', 'Aprobada', 'Archivada');
+-- Tipos enumerados para Urgencia y Criticidad (con protección si ya existen)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'urgency_level') THEN
+        CREATE TYPE urgency_level AS ENUM ('Baja', 'Media', 'Alta', 'Crítica');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'criticality_level') THEN
+        CREATE TYPE criticality_level AS ENUM ('Baja', 'Media', 'Alta', 'Crítica');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'spec_status') THEN
+        CREATE TYPE spec_status AS ENUM ('Borrador', 'En Revisión', 'Aprobada', 'Archivada');
+    END IF;
+END $$;
 
 -- Tabla de Sectores
 CREATE TABLE IF NOT EXISTS sectors (

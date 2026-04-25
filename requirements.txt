@@ -1,0 +1,8 @@
+supabase
+groq
+google-generativeai
+python-dotenv
+flask
+flask-cors
+pydantic
+requests

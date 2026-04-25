@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spec Factory | IEEE 830 Automation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Dependencias ExportManager -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.11.0/libs/pptxgen.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass">
+            <div class="logo">SPEC FACTORY</div>
+            <nav class="nav-links">
+                <a href="#" class="nav-item active" id="nav-dashboard">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-create">
+                    <i class="ri-code-s-slash-line"></i>
+                    <span>Live Coding</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-specs">
+                    <i class="ri-file-list-3-line"></i>
+                    <span>Especificaciones</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-settings">
+                    <i class="ri-settings-4-line"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar glass">
+                <div class="search-bar">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="semantic-search" placeholder="Búsqueda semántica (ej. auth, reportes)...">
+                </div>
+                <div class="user-profile">
+                    <button class="btn btn-primary" id="btn-new-spec">
+                        <i class="ri-add-line"></i> Nueva Spec
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Sections -->
+            <section id="dashboard-view">
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <span class="stat-value" id="count-total">0</span>
+                        <span class="stat-label">Total Specs</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-value" id="count-approved">0</span>
+                        <span class="stat-label">Aprobadas</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-value" id="count-pending">0</span>
+                        <span class="stat-label">Pendientes</span>
+                    </div>
+                </div>
+
+                <div class="glass" style="margin-top: 20px; padding: 20px;">
+                    <h3>Specs Recientes</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título</th>
+                                <th>Sector</th>
+                                <th>Versión</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specs-table-body">
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Live Coding View (Hidden by default) -->
+            <section id="create-view" style="display: none; height: 100%;">
+                <div class="live-coding-panel">
+                    <div class="editor-container glass">
+                        <h3>Live Coding</h3>
+                        <p class="stat-label">Pega tu código aquí para generar la spec</p>
+                        <textarea class="code-editor" id="code-input" placeholder="// Escribe o pega tu código aquí..."></textarea>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn btn-primary" id="btn-convert">
+                                <i class="ri-magic-line"></i> Convertir a Spec
+                            </button>
+                        </div>
+                    </div>
+                    <div class="preview-container glass">
+                        <h3>Vista Previa (IEEE 830)</h3>
+                        <div id="spec-preview" class="preview-content">
+                            <div class="stat-label">La especificación generada aparecerá aquí.</div>
+                        </div>
+                        <div id="preview-actions" style="margin-top: 15px; display: none;">
+                            <button class="btn btn-primary" id="btn-save-spec">
+                                <i class="ri-save-line"></i> Guardar Spec
+                            </button>
+                            <button class="btn" id="btn-download-pdf">
+                                <i class="ri-file-pdf-line"></i> PDF
+                            </button>
+                            <button class="btn btn-secondary" id="btn-share-spec">
+                                <i class="ri-share-forward-line"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Compartir -->
+    <div id="share-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Compartir Especificación</h3>
+                <button class="btn-close" id="close-share-modal"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="share-options">
+                <button class="share-option" data-type="pdf">
+                    <i class="ri-file-pdf-fill"></i>
+                    <span>PDF Local</span>
+                </button>
+                <button class="share-option" data-type="pptx">
+                    <i class="ri-file-ppt-fill"></i>
+                    <span>PowerPoint</span>
+                </button>
+                <button class="share-option" data-type="drive">
+                    <i class="ri-google-fill"></i>
+                    <span>Google Drive</span>
+                </button>
+                <button class="share-option" data-type="server">
+                    <i class="ri-server-line"></i>
+                    <span>Servidor / Web</span>
+                </button>
+            </div>
+            <div id="share-status" class="share-status"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/export_manager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
