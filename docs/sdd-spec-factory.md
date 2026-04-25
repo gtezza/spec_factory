@@ -7,7 +7,6 @@
 **Versión**: 1.1
 **Control de Cambios**: Implementación de módulo de seguridad, autenticación real y control de acceso por roles (admin, creador, aprovador, visor).
 **Objetivo**: Garantizar la seguridad de la información almacenada, impidiendo accesos malintencionados mediante un sistema robusto de autenticación y control de acceso por roles.
-
 ---
 
 ## Modelo de Arquitectura de 5 Capas
@@ -37,8 +36,8 @@
 - **Vectores**: Embeddings de Cohere para búsqueda semántica de requerimientos históricos.
 
 ### 5. Capa de Seguridad y Resiliencia
-- **Autenticación**: Usuario de prueba `admin/admin` pre-cargado.
-- **Protección de Sesión**: Cierre automático y destrucción de tokens al finalizar la interacción.
+- **Autenticación**: Basada en hashing criptográfico **scrypt** (Werkzeug). No se almacenan contraseñas en texto plano.
+- **Protección de Sesión**: Las sesiones son efímeras (sessionStorage), se destruyen al cerrar la pestaña o navegador.
 - **Mensajería**: Notificaciones elegantes pero estrictas para el cumplimiento del flujo de cierre de sesión.
 
 ---

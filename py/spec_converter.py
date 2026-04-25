@@ -1,6 +1,7 @@
 import os
 import json
 import cohere
+from werkzeug.security import check_password_hash
 from groq import Groq
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -140,18 +141,21 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
     return result.data
 
 def validate_user(email, password):
-    """Valida las credenciales de un usuario contra la tabla profiles."""
+    """Valida las credenciales de un usuario contra la tabla usuarios usando hashing."""
     try:
-        result = supabase.table("profiles")\
-            .select("id, full_name, email, role_name, password")\
+        result = supabase.table("usuarios")\
+            .select("id, full_name, email, role, password")\
             .eq("email", email)\
             .execute()
         
         if result.data and len(result.data) > 0:
             user = result.data[0]
-            if user['password'] == password:
-                # No devolvemos la contraseña al frontend
+            # Verificamos el hash almacenado contra la password proporcionada
+            if check_password_hash(user['password'], password):
+                # Limpiamos datos sensibles antes de devolver al frontend
                 del user['password']
+                # Mapeamos role a role_name para compatibilidad si es necesario
+                user['role_name'] = user['role']
                 return user
         return None
     except Exception as e:

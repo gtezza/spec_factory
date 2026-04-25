@@ -179,7 +179,7 @@
             loginError.innerText = 'Error de conexión con el servidor';
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = 'Identificarse <i class="ri-shield-user-line"></i>';
+            btnSubmit.innerHTML = 'Entrar <i class="ri-login-box-line"></i>';
         }
     }
 
@@ -346,7 +346,7 @@
                     urgency, 
                     status, 
                     version,
-                    profiles(full_name),
+                    usuarios(full_name),
                     sectors(name)
                 `)
                 .order('version', { ascending: false }) // Versiones más recientes primero
@@ -370,7 +370,7 @@
                         <div style="font-weight:500;">${spec.title}</div>
                         <div style="font-size:11px; opacity:0.6;">v${spec.version || '1.0'} | ${spec.sectors?.name || 'Gral'}</div>
                     </td>
-                    <td>${spec.profiles?.full_name || 'IA System'}</td>
+                    <td>${spec.usuarios?.full_name || 'IA System'}</td>
                     <td><span class="badge ${spec.urgency === 'Alta' ? 'badge-high' : ''}">${spec.urgency}</span></td>
                     <td><span class="status-dot ${spec.status === 'Aprobada' ? 'status-approved' : 'status-draft'}"></span> ${spec.status}</td>
                     <td>
