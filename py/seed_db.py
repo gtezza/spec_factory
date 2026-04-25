@@ -1,5 +1,6 @@
 import os
 from supabase import create_client
+from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 
 load_dotenv('env/.env')
@@ -11,11 +12,12 @@ supabase = create_client(url, key)
 def populate():
     print("Iniciando población de base de datos...")
     
-    # 1. Insertar Roles
+    # 1. Insertar Roles según SDD
     roles = [
         {"name": "Admin"},
-        {"name": "Author"},
-        {"name": "Approver"}
+        {"name": "Creador"},
+        {"name": "Aprovador"},
+        {"name": "Visor"}
     ]
     for r in roles:
         supabase.table("roles").upsert(r, on_conflict="name").execute()
@@ -26,42 +28,36 @@ def populate():
         {"name": "Tecnología"},
         {"name": "Legal"},
         {"name": "Salud"},
-        {"name": "Finanzas"}
+        {"name": "Finanzas"},
+        {"name": "Operaciones"}
     ]
     for s in sectors:
         supabase.table("sectors").upsert(s, on_conflict="name").execute()
     print("[OK] Sectores insertados/actualizados.")
 
-    # 3. Obtener IDs para el perfil
-    author_role = supabase.table("roles").select("id").eq("name", "Author").single().execute().data
-    tech_sector = supabase.table("sectors").select("id").eq("name", "Tecnología").single().execute().data
-
-    # 4. Insertar Perfil de Autor por defecto
-    if author_role and tech_sector:
-        full_name = "Analista Spec Factory"
-        
-        # Verificar si ya existe
-        existing = supabase.table("profiles").select("id").ilike("full_name", full_name).execute()
-        
-        if not existing.data:
-            profile = {
-                "full_name": full_name,
-                "email": "analista@specfactory.com",
-                "role_id": author_role['id'],
-                "sector_id": tech_sector['id']
-            }
-            try:
-                # Intentamos insertar. Si falla por falta de ID, es que la tabla aún tiene FK a auth.users
-                supabase.table("profiles").insert(profile).execute()
-                print("[OK] Perfil de autor creado.")
-            except Exception as e:
-                print("\n[!] Error al insertar perfil. Probablemente la tabla 'profiles' todavia depende de 'auth.users'.")
-                print("Por favor, ejecuta esto en el SQL Editor de Supabase:")
-                print("ALTER TABLE profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();")
-                print("ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;")
-                print(f"Error detallado: {e}")
-        else:
-            print(f"[SKIP] Perfil '{full_name}' ya existe.")
+    # 3. Configuración Usuario Admin
+    admin_email = "admin@specfactory.com"
+    hashed_pass = generate_password_hash("admin", method='scrypt')
+    
+    # Verificar si ya existe
+    existing = supabase.table("usuarios").select("id").eq("email", admin_email).execute()
+    
+    if not existing.data:
+        admin_user = {
+            "full_name": "Administrador Sistema",
+            "email": admin_email,
+            "password": hashed_pass,
+            "role": "Admin",
+            "sector": "Operaciones"
+        }
+        try:
+            supabase.table("usuarios").insert(admin_user).execute()
+            print("[OK] Usuario Admin creado (admin@specfactory.com / admin).")
+        except Exception as e:
+            print(f"[ERROR] No se pudo crear el admin: {e}")
+            print("Asegúrate de ejecutar el script SQL primero para crear las tablas.")
+    else:
+        print(f"[SKIP] Usuario Admin ya existe.")
 
 if __name__ == "__main__":
     populate()

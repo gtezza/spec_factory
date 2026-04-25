@@ -28,7 +28,7 @@
             <nav class="nav-links">
                 <a href="#" class="nav-item active" id="nav-dashboard">
                     <i class="ri-dashboard-line"></i>
-                    <span>Dashboard</span>
+                    <span>Tablero</span>
                 </a>
                 <a href="#" class="nav-item" id="nav-create">
                     <i class="ri-add-circle-line"></i>
@@ -41,10 +41,6 @@
                 <a href="#" class="nav-item" id="nav-settings">
                     <i class="ri-settings-4-line"></i>
                     <span>Configuración</span>
-                </a>
-                <a href="#" class="nav-item logout-item" id="nav-logout">
-                    <i class="ri-logout-box-r-line"></i>
-                    <span>Salir</span>
                 </a>
             </nav>
         </aside>
@@ -62,9 +58,6 @@
                         <div id="header-user-name" style="font-weight: 600; font-size: 14px;">Usuario</div>
                         <div id="header-user-role" style="font-size: 11px; opacity: 0.6; text-transform: uppercase;">Rol</div>
                     </div>
-                    <button class="btn glass" id="btn-logout" style="border: 1px solid rgba(255,255,255,0.1); display: none;">
-                        <i class="ri-logout-box-line"></i> Salir
-                    </button>
                     <button class="btn btn-primary" id="btn-new-spec">
                         <i class="ri-add-line"></i> Nueva Spec
                     </button>
@@ -140,7 +133,7 @@
                 </div>
             </section>
 
-            <!-- Live Coding View (Hidden by default) -->
+            <!-- Vive Coding View (Hidden by default) -->
             <section id="create-view" style="display: none; height: 100%;">
                 <div class="live-coding-panel">
                     <div class="editor-container glass">
@@ -170,6 +163,125 @@
                             </button>
                         </div>
                     </div>
+            </section>
+
+            <!-- VISTA: CONFIGURACIÓN (Gestión de Usuarios) -->
+            <section id="settings-view" class="view-container" style="display:none; padding: 20px;">
+                <div class="view-header" style="margin-bottom: 30px;">
+                    <h1><i class="ri-settings-4-line"></i> Configuración del Sistema</h1>
+                    <p style="opacity: 0.7;">Gestión de usuarios, roles y sectores de la organización.</p>
+                </div>
+
+                <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;">
+                    <!-- Formulario de Creación -->
+                    <div class="card glass" style="padding: 25px;">
+                        <h3 style="margin-top: 0;"><i class="ri-user-add-line"></i> Crear Nuevo Usuario</h3>
+                        <form id="create-user-form" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Nombre Completo</label>
+                                <input type="text" id="new-user-name" class="glass" placeholder="Ej: Juan Pérez" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Correo Electrónico</label>
+                                <input type="email" id="new-user-email" class="glass" placeholder="usuario@specfactory.com" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Contraseña Temporal</label>
+                                <input type="password" id="new-user-pass" class="glass" placeholder="••••••••" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Rol</label>
+                                    <select id="new-user-role" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                                        <option value="visor">Visor</option>
+                                        <option value="creador">Creador</option>
+                                        <option value="aprovador">Aprobador</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Sector</label>
+                                    <select id="new-user-sector-form" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                                        <!-- Se cargará dinámicamente -->
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 10px; width: 100%; padding: 12px;">
+                                <i class="ri-save-line"></i> Guardar Usuario
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Usuarios -->
+                    <div class="card glass" style="padding: 25px;">
+                        <h3 style="margin-top: 0;"><i class="ri-group-line"></i> Usuarios Registrados</h3>
+                        <div id="users-list-container" style="margin-top: 20px;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Rol</th>
+                                        <th>Sector</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Se cargará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 24px;">
+                    <!-- Gestión del Glosario Inteligente -->
+                    <div class="card glass" style="padding: 25px;">
+                        <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="ri-book-3-line"></i> Glosario Inteligente</span>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="btn-new-term" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;">
+                                    <i class="ri-add-line"></i> Nuevo Término
+                                </button>
+                                <button id="btn-export-glossary" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">
+                                    <i class="ri-download-cloud-2-line"></i> Exportar MD
+                                </button>
+                            </div>
+                        </h3>
+                        <p style="opacity: 0.7; font-size: 13px;">Fuente de verdad para el sistema SRS. Se usa para enriquecer y validar términos automáticamente en "Live Coding".</p>
+                        
+                        <div style="margin-top: 20px;">
+                            <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <select id="glossary-filter-category" class="glass" style="padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                                    <option value="">Todas las Categorías</option>
+                                    <option value="negocio">Negocio</option>
+                                    <option value="tecnico">Técnico</option>
+                                    <option value="acronimo">Acrónimo</option>
+                                    <option value="sistema">Sistema</option>
+                                </select>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Término</th>
+                                        <th>Categoría</th>
+                                        <th>Definición</th>
+                                        <th>Confianza</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="glossary-table-body">
+                                    <tr><td colspan="5" style="text-align:center;opacity:0.6;">Cargando glosario...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: right;">
+                    <button class="btn btn-primary" id="btn-settings-logout" style="background-color: var(--accent-red); border-color: var(--accent-red);">
+                        <i class="ri-logout-box-r-line"></i> Cerrar Sesión Oficial
+                    </button>
                 </div>
             </section>
         </main>
@@ -205,6 +317,43 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Modal Glosario (CRUD) -->
+    <div id="modal-term" class="modal-overlay" style="display: none; z-index: 9999;">
+        <div class="modal-content glass" style="max-width: 500px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="modal-term-title">Nuevo Término</h3>
+                <button class="btn-close" id="close-term-modal"><i class="ri-close-line"></i></button>
+            </div>
+            <form id="term-form" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <input type="hidden" id="term-id">
+                <div class="form-group">
+                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Término</label>
+                    <input type="text" id="term-name" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Categoría</label>
+                    <select id="term-category" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                        <option value="negocio">Negocio</option>
+                        <option value="tecnico">Técnico</option>
+                        <option value="acronimo">Acrónimo</option>
+                        <option value="sistema">Sistema</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Definición</label>
+                    <textarea id="term-definition" class="glass" required rows="4" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Fuente (opcional)</label>
+                    <input type="text" id="term-fuente" class="glass" placeholder="Ej: Industria, Usuario" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px; width: 100%; padding: 12px;">
+                    <i class="ri-save-line"></i> Guardar Término
+                </button>
+            </form>
+        </div>
+    </div>
     <!-- Modal de Acceso (Login Real) -->
     <div id="modal-login" class="modal-overlay" style="display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div class="glass" style="width: 400px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden;">

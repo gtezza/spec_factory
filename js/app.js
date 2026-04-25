@@ -13,6 +13,7 @@
     const views = {
         'dashboard-view': document.getElementById('dashboard-view'),
         'create-view': document.getElementById('create-view'),
+        'settings-view': document.getElementById('settings-view'),
     };
 
     let currentUser = null; // Guardará el objeto de perfil del usuario logueado
@@ -46,7 +47,13 @@
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const viewId = item.id === 'nav-create' ? 'create-view' : 'dashboard-view';
+            let viewId = 'dashboard-view';
+            if (item.id === 'nav-create') viewId = 'create-view';
+            if (item.id === 'nav-settings') {
+                viewId = 'settings-view';
+                if (window.loadGlossary) window.loadGlossary();
+            }
+            
             switchView(viewId);
         });
     });
@@ -116,7 +123,6 @@
     const modalLogin = document.getElementById('modal-login');
     const loginForm = document.getElementById('login-form');
     const loginError = document.getElementById('login-error');
-    const btnLogout = document.getElementById('btn-logout');
     const userInfoArea = document.getElementById('user-info');
     const headerUserName = document.getElementById('header-user-name');
     const headerUserRole = document.getElementById('header-user-role');
@@ -126,7 +132,6 @@
             currentUser = user;
             modalLogin.style.display = 'none';
             userInfoArea.style.display = 'block';
-            btnLogout.style.display = 'block';
             headerUserName.innerText = user.full_name;
             headerUserRole.innerText = user.role_name;
 
@@ -142,7 +147,6 @@
             currentUser = null;
             modalLogin.style.display = 'flex';
             userInfoArea.style.display = 'none';
-            btnLogout.style.display = 'none';
         }
     }
 
@@ -190,7 +194,20 @@
         }
     }
 
+    const btnSettingsLogout = document.getElementById('btn-settings-logout');
+    if (btnSettingsLogout) {
+        btnSettingsLogout.addEventListener('click', handleLogout);
+    }
+
     function checkSession() {
+        // SEGURIDAD: Si es una recarga (F5), forzamos login
+        if (performance.navigation.type === 1) {
+            console.log('Recarga detectada - Cerrando sesión por seguridad');
+            sessionStorage.removeItem('sf_session');
+            updateAuthUI(null);
+            return;
+        }
+
         const session = sessionStorage.getItem('sf_session');
         if (session) {
             const user = JSON.parse(session);
@@ -201,12 +218,11 @@
     }
 
     loginForm?.addEventListener('submit', handleLogin);
-    btnLogout?.addEventListener('click', handleLogout);
 
     // Aviso de cierre estricto (Solicitado por Gerardo Tezza)
     window.addEventListener('beforeunload', (e) => {
         if (currentUser) {
-            const msg = "SEGURIDAD: Debe cerrar la sesión formalmente desde el botón 'Salir'. El cierre forzado puede comprometer la integridad de la información.";
+            const msg = "PROTOCOLO DE SEGURIDAD: Por favor, utilice el botón 'Salir' oficial para garantizar la integridad de su información. El cierre directo vulnera los estándares de Spec Factory.";
             e.preventDefault();
             e.returnValue = msg;
             return msg;
@@ -297,11 +313,236 @@
                 opt.value = sector.id;
                 opt.textContent = sector.name;
                 sectorSelect.appendChild(opt);
+
+                // También cargar en el formulario de creación de usuarios
+                const formSector = document.getElementById('new-user-sector-form');
+                if (formSector) {
+                    const optForm = opt.cloneNode(true);
+                    formSector.appendChild(optForm);
+                }
             });
         } catch (e) {
-            console.warn('Error cargando sectores para filtros:', e);
+            console.warn('Error cargando sectores:', e);
         }
     }
+
+    // GESTIÓN DE USUARIOS
+    async function loadUsersList() {
+        const tableBody = document.getElementById('users-table-body');
+        if (!tableBody || !sbClient) return;
+
+        try {
+            const { data, error } = await sbClient
+                .from('usuarios')
+                .select('id, full_name, email, role, sector')
+                .order('full_name');
+            
+            if (error) throw error;
+
+            tableBody.innerHTML = data.map(u => `
+                <tr>
+                    <td>
+                        <div style="font-weight:500;">${u.full_name}</div>
+                        <div style="font-size:11px; opacity:0.6;">${u.email}</div>
+                    </td>
+                    <td><span class="badge">${u.role}</span></td>
+                    <td>${u.sector || '-'}</td>
+                    <td>
+                        <button class="btn-icon" title="Eliminar" onclick="alert('Funcionalidad restringida por SDD')"><i class="ri-delete-bin-line"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error cargando usuarios:', e);
+        }
+    }
+
+    const createUserForm = document.getElementById('create-user-form');
+    createUserForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btnSave = document.getElementById('btn-save-user');
+        
+        const userData = {
+            full_name: document.getElementById('new-user-name').value,
+            email: document.getElementById('new-user-email').value,
+            password: document.getElementById('new-user-pass').value,
+            role: document.getElementById('new-user-role').value,
+            sector: document.getElementById('new-user-sector-form').value
+        };
+
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
+
+        try {
+            const response = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/users/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('Usuario creado correctamente');
+                createUserForm.reset();
+                loadUsersList();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (err) {
+            alert('Error de conexión al crear usuario');
+        } finally {
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<i class="ri-save-line"></i> Guardar Usuario';
+        }
+    });
+
+    window.glossaryTermsData = [];
+
+    // === GESTIÓN DE GLOSARIO INTELIGENTE ===
+    window.loadGlossary = async function() {
+        const tableBody = document.getElementById('glossary-table-body');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;opacity:0.6;"><i class="ri-loader-4-line ri-spin"></i> Cargando glosario...</td></tr>';
+        
+        const filterCat = document.getElementById('glossary-filter-category')?.value || '';
+        let url = `${APP_CONFIG.SERVER.ENDPOINT}/api/glossary`;
+        if (filterCat) url += `?categoria=${filterCat}`;
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                window.glossaryTermsData = data.data;
+                if (data.data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;opacity:0.6;">No hay términos en el glosario.</td></tr>';
+                    return;
+                }
+                
+                tableBody.innerHTML = data.data.map(t => `
+                    <tr>
+                        <td style="font-weight:600;">${t.termino}</td>
+                        <td><span class="badge">${t.categoria}</span></td>
+                        <td>
+                            <div style="font-size:13px;">${t.definicion}</div>
+                            ${t.ejemplo ? `<div style="font-size:11px; opacity:0.6; margin-top:4px;"><i>Ej: ${t.ejemplo}</i></div>` : ''}
+                        </td>
+                        <td><span style="font-size:11px; opacity:0.8;">${t.confianza}</span></td>
+                        <td>
+                            <button class="btn-icon" title="Editar" onclick="window.editGlossaryTerm('${t.id}')"><i class="ri-edit-line"></i></button>
+                            <button class="btn-icon" title="Eliminar" onclick="window.deleteGlossaryTerm('${t.id}')"><i class="ri-delete-bin-line"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--accent-red);text-align:center;">Error: ${data.error}</td></tr>`;
+            }
+        } catch (e) {
+            console.error('Error cargando glosario:', e);
+            tableBody.innerHTML = '<tr><td colspan="5" style="color:var(--accent-red);text-align:center;">Error de conexión.</td></tr>';
+        }
+    };
+
+    window.editGlossaryTerm = function(id) {
+        const term = window.glossaryTermsData.find(t => t.id == id);
+        if (!term) return;
+        document.getElementById('term-id').value = term.id;
+        document.getElementById('term-name').value = term.termino;
+        document.getElementById('term-category').value = term.categoria;
+        document.getElementById('term-definition').value = term.definicion;
+        document.getElementById('term-fuente').value = term.fuente || '';
+        document.getElementById('modal-term-title').innerText = 'Editar Término';
+        document.getElementById('modal-term').style.display = 'flex';
+    };
+
+    window.deleteGlossaryTerm = async function(id) {
+        if (!confirm('¿Estás seguro de que deseas eliminar este término del glosario?')) return;
+        try {
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/glossary/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.status === 'success') {
+                window.loadGlossary();
+            } else {
+                alert('Error al eliminar: ' + data.error);
+            }
+        } catch (e) {
+            alert('Error de conexión');
+        }
+    };
+
+    document.getElementById('glossary-filter-category')?.addEventListener('change', window.loadGlossary);
+
+    const modalTerm = document.getElementById('modal-term');
+    const termForm = document.getElementById('term-form');
+    
+    document.getElementById('btn-new-term')?.addEventListener('click', () => {
+        if(termForm) termForm.reset();
+        document.getElementById('term-id').value = '';
+        document.getElementById('modal-term-title').innerText = 'Nuevo Término';
+        if(modalTerm) modalTerm.style.display = 'flex';
+    });
+
+    document.getElementById('close-term-modal')?.addEventListener('click', () => {
+        if(modalTerm) modalTerm.style.display = 'none';
+    });
+
+    termForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('term-id').value;
+        const termino = document.getElementById('term-name').value;
+        const categoria = document.getElementById('term-category').value;
+        const definicion = document.getElementById('term-definition').value;
+        const fuente = document.getElementById('term-fuente').value;
+
+        const payload = { termino, categoria, definicion, fuente };
+        if (id) payload.id = id;
+
+        const btn = termForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
+
+        try {
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/glossary`, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                modalTerm.style.display = 'none';
+                window.loadGlossary();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (err) {
+            alert('Error de conexión');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-save-line"></i> Guardar Término';
+        }
+    });
+
+    document.getElementById('btn-export-glossary')?.addEventListener('click', async () => {
+        try {
+            const res = await fetch(\`\${APP_CONFIG.SERVER.ENDPOINT}/api/glossary/export/md\`);
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                const blob = new Blob([data.markdown], { type: 'text/markdown' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Glosario_SpecFactory.md';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                alert('Error al exportar glosario: ' + data.error);
+            }
+        } catch (e) {
+            alert('Error de red al exportar glosario.');
+        }
+    });
 
     // Carga Inicial de Datos con Filtros
     async function loadDashboardStats(filters = {}) {

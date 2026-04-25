@@ -1,53 +1,72 @@
-# Software Design Document (SDD) - Spec Factory
+# Especificación de Diseño de Software (SDD) - Spec Factory
 
-**Proyecto**: Spec Factory - Sistema de Automatización de Especificaciones IEEE 830
-**Autor**: Gerardo Tezza
-**Rol**: Creador / Aprobador
-**Sector**: Operaciones
-**Versión**: 1.1
-**Control de Cambios**: Implementación de módulo de seguridad, autenticación real y control de acceso por roles (admin, creador, aprovador, visor).
-**Objetivo**: Garantizar la seguridad de la información almacenada, impidiendo accesos malintencionados mediante un sistema robusto de autenticación y control de acceso por roles.
----
-
-## Modelo de Arquitectura de 5 Capas
-
-### 1. Capa de Presentación (UI/UX)
-- **Tecnologías**: HTML5, Vanilla CSS (Glassmorphism), JavaScript ES6.
-- **Control de Acceso**: Interfaz bloqueada mediante modal de login obligatorio. No se permite la visualización de datos sin autenticación previa.
-- **Gestión de Sesión**: Las sesiones se almacenan en `sessionStorage`, garantizando que la información se elimine al cerrar la pestaña.
-- **Interrupción de Cierre**: Implementación de advertencia en el evento `beforeunload` para forzar el cierre de sesión formal.
-
-### 2. Capa de Lógica y Servicios (Backend)
-- **Servidor**: Python Flask (Puerto 5005).
-- **Controlador de Autenticación**: Endpoint `/api/login` para validación de credenciales.
-- **Middleware de Seguridad**: Validación de token en cada petición para impedir el acceso directo por URL a los datos de la API.
-
-### 3. Capa de Datos (Persistencia)
-- **Base de Datos**: Supabase (PostgreSQL).
-- **Gestión de Roles**:
-    - `admin`: Acceso total al sistema y gestión de usuarios.
-    - `creador`: Capacidad de generar y editar especificaciones.
-    - `aprovador`: Capacidad de validar y aprobar documentos.
-    - `visor`: Acceso de solo lectura a las especificaciones aprobadas.
-- **Seguridad**: Row Level Security (RLS) activo para filtrar datos según el rol del usuario.
-
-### 4. Capa de Inteligencia Artificial (IA)
-- **Generación**: Integración con Groq Cloud (Llama-3.3-70b).
-- **Vectores**: Embeddings de Cohere para búsqueda semántica de requerimientos históricos.
-
-### 5. Capa de Seguridad y Resiliencia
-- **Autenticación**: Basada en hashing criptográfico **scrypt** (Werkzeug). No se almacenan contraseñas en texto plano.
-- **Protección de Sesión**: Las sesiones son efímeras (sessionStorage), se destruyen al cerrar la pestaña o navegador.
-- **Mensajería**: Notificaciones elegantes pero estrictas para el cumplimiento del flujo de cierre de sesión.
-
----
+**Proyecto:** sdd-spec-factory  
+**Versión:** 1.3  
+**Fecha:** 2026-04-25  
+**Autor:** Gerardo Tezza (Creador)  
+**Sector:** Operaciones  
 
 ## Control de Cambios y Versiones
-- **v1.0**: Estructura básica y generación de specs.
-- **v1.1**: Implementación de Seguridad, Roles y Gestión de Sesiones (Actual).
+| Fecha | Versión | Autor | Cambios |
+| :--- | :--- | :--- | :--- |
+| 2026-04-25 | 1.0 | Antigravity | Estructura inicial. |
+| 2026-04-25 | 1.1 | Antigravity | Inclusión de hashing scrypt y tabla usuarios. |
+| 2026-04-25 | 1.2 | Gerardo Tezza | Ampliación: 5 capas, roles Creador/Aprovador y sesiones efímeras. |
+| 2026-04-25 | 1.3 | Antigravity | Corrección de marca: Restaurado a 'Vive Coding'. |
 
-## Registro de Tareas de Seguridad
-- [ ] Implementar `beforeunload` con mensaje de seguridad en `app.js`.
-- [ ] Crear endpoint `/api/login` en `api.py`.
-- [ ] Configurar tabla de roles y perfiles en Supabase (`SQL/06_security_init.sql`).
-- [ ] Bloquear acceso a vistas de Dashboard si no hay sesión activa.
+**Estado:** En Desarrollo (Ampliación de Seguridad)
+
+---
+
+## 1. Introducción y Objetivo
+El objetivo de esta ampliación es dotar al sistema **Spec Factory** de un control de acceso y autenticación robusto, garantizando la integridad de la información y previniendo accesos malintencionados. Se busca que solo personal autorizado pueda visualizar, crear o aprobar especificaciones.
+
+### Objetivos de Seguridad:
+- Impedir el acceso directo por URL a áreas restringidas.
+- Implementar sesiones efímeras (se destruyen al cerrar la pestaña o refrescar).
+- Almacenamiento seguro de credenciales mediante algoritmos de hashing modernos.
+
+## 2. Arquitectura de 5 Capas
+El sistema se organiza bajo el siguiente modelo para garantizar escalabilidad y separación de responsabilidades:
+
+1.  **Capa de Presentación (Frontend):** 
+    - Desarrollada en HTML5, CSS3 (Vanilla) y JavaScript (ES6+).
+    - Manejo de estados de sesión mediante `sessionStorage`.
+    - Lógica de interceptación para forzar login en cada recarga.
+    - Módulo **Vive Coding** para previsualización en tiempo real.
+
+2.  **Capa de Control y Aplicación (API):**
+    - Flask (Python) como orquestador de peticiones.
+    - Endpoints protegidos para login, creación de usuarios y conversión.
+
+3.  **Capa de Lógica de Negocio (Servicios):**
+    - `spec_converter.py`: Procesa la conversión IEEE 830 y gestiona el hashing de seguridad.
+    - Validación de roles para operaciones críticas.
+
+4.  **Capa de Persistencia y Datos (Supabase):**
+    - Base de datos relacional (PostgreSQL).
+    - Almacenamiento de usuarios, roles, sectores y especificaciones.
+    - Búsqueda vectorial para embeddings.
+
+5.  **Capa de Infraestructura y Seguridad:**
+    - Algoritmo de Hashing: **scrypt** (vía Werkzeug).
+    - Políticas RLS en Supabase para control de acceso granular a nivel de fila.
+
+## 3. Modelo de Control de Acceso (RBAC)
+Se definen los siguientes perfiles:
+
+| Rol | Descripción | Permisos |
+| :--- | :--- | :--- |
+| **Admin** | Administrador de plataforma | Gestión total de usuarios, sectores y logs. |
+| **Creador** | Generador de contenido | Puede crear y editar sus propias especificaciones. |
+| **Aprovador** | Validador técnico | Puede revisar y cambiar el estado de specs a "Aprobado". |
+| **Visor** | Usuario de consulta | Solo lectura de especificaciones aprobadas. |
+
+## 4. Gestión de Sesiones y Seguridad Crítica
+- **Persistencia:** Las sesiones son **estrictamente efímeras**. No se utiliza `localStorage` para tokens de acceso.
+- **Refresh/Cierre:** Al detectar una recarga de página (`F5`) o cierre natural, el sistema limpia el `sessionStorage`.
+- **Cierre Elegante:** El sistema incluye un mensaje de advertencia si el usuario intenta cerrar la ventana sin usar el botón de "Cerrar Sesión", instando al cumplimiento de los protocolos de seguridad.
+
+---
+**Nota de Arquitectura:** Las contraseñas nunca se almacenan ni transmiten en texto plano. El backend utiliza salting automático mediante el método scrypt.
+

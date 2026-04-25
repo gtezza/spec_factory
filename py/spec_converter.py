@@ -1,7 +1,7 @@
 import os
 import json
 import cohere
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from groq import Groq
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -34,10 +34,17 @@ def get_embedding(text):
 def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
     """Convierte código fuente en una especificación IEEE 830 usando Groq."""
     
+    # Obtener términos activos del glosario
+    active_terms = get_glossary()
+    glossary_text = "\n".join([f"- {t['termino']}: {t['definicion']} (Categoría: {t['categoria']})" for t in active_terms]) if active_terms else "Ningún término disponible actualmente."
+
     prompt = f"""
     Actúa como un Analista de Sistemas Senior experto en la norma IEEE 830.
     Convierte el siguiente bloque de código en una especificación funcional (SRS) profesional y detallada.
     
+    GLOSARIO CORPORATIVO DISPONIBLE:
+    {glossary_text}
+
     CÓDIGO:
     {code_content}
     
@@ -47,7 +54,7 @@ def convert_code_to_spec(code_content, project_name="Nuevo Proyecto"):
         "introduction": {{
             "purpose": "Propósito detallado",
             "scope": "Alcance específico del código proporcionado",
-            "definitions": ["Término 1: Definición", "Término 2: Definición"]
+            "definitions": ["Término 1: Definición (usar Glosario Corporativo si aplica. Si encuentras conceptos clave adicionales en el código que no estén en el Glosario, infiere su definición usando ÚNICAMENTE literatura técnica formal y estándares reconocidos. EVITAR estrictamente fuentes como Wikipedia. Marca el término con '(Nuevo)')"]
         }},
         "product_overview": {{
             "perspective": "Cómo encaja este código en un sistema mayor",
@@ -162,6 +169,26 @@ def validate_user(email, password):
         print(f"[ERROR] Error en validate_user: {e}")
         return None
 
+def create_user(user_data):
+    """Crea un nuevo usuario en la base de datos con contraseña hasheada."""
+    try:
+        # Hasheamos la contraseña antes de guardar
+        hashed_password = generate_password_hash(user_data['password'], method='scrypt')
+        
+        data = {
+            "full_name": user_data['full_name'],
+            "email": user_data['email'],
+            "password": hashed_password,
+            "role": user_data['role'],
+            "sector": user_data.get('sector')
+        }
+        
+        result = supabase.table("usuarios").insert(data).execute()
+        return {"status": "success", "data": result.data[0]}
+    except Exception as e:
+        print(f"[ERROR] Error en create_user: {e}")
+        return {"status": "error", "error": str(e)}
+
 def search_specifications(query_text, threshold=0.4, max_results=5):
     """Busca specs semánticamente similares a la consulta de texto."""
     
@@ -183,6 +210,86 @@ def search_specifications(query_text, threshold=0.4, max_results=5):
     
     return result.data
 
+def get_glossary(categoria=None):
+    """Obtiene términos activos del glosario, opcionalmente filtrados por categoría."""
+    try:
+        query = supabase.table("glosario").select("*").eq("activo", True)
+        if categoria:
+            query = query.eq("categoria", categoria)
+        # Ordenamos por término alfabéticamente
+        query = query.order("termino")
+        result = query.execute()
+        return result.data
+    except Exception as e:
+        print(f"[ERROR] Error al obtener glosario: {e}")
+        return []
+
+def propose_glossary_term(term, context=""):
+    """Usa IA para proponer una definición para un término desconocido."""
+    prompt = f"""
+    Actúa como un Arquitecto de Software y Analista de Negocio experto.
+    El usuario necesita una definición formal para el término '{term}' en el contexto de: {context}.
+    Proporciona la definición basándote ÚNICAMENTE en fuentes representativas de la industria tecnológica (ej. estándares IEEE, ISO, W3C, manuales oficiales). EVITA terminantemente fuentes enciclopédicas como Wikipedia o descripciones genéricas.
+    Incluye un ejemplo, la categoría, la fuente y asigna un nivel de confianza ('estandar' si es ampliamente aceptado en la industria, 'parcial' si depende del contexto o 'usuario' si es muy específico).
+    
+    Responde ÚNICAMENTE en JSON con esta estructura:
+    {{
+        "termino": "{term}",
+        "definicion": "Definición detallada, formal y técnica",
+        "categoria": "negocio" o "tecnico" o "acronimo" o "sistema",
+        "ejemplo": "Un ejemplo práctico de uso",
+        "fuente": "Nombre de la fuente formal (ej. IEEE830, W3C, Documentación Oficial)",
+        "confianza": "estandar" o "parcial"
+    }}
+    
+    Todo debe estar en ESPAÑOL.
+    """
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "Devuelves solo JSON en español."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        return json.loads(chat_completion.choices[0].message.content)
+    except Exception as e:
+        print(f"[ERROR] Error en propose_glossary_term: {e}")
+        return {"error": str(e)}
+
+def save_glossary_term(term_data):
+    """Guarda o actualiza un término en Supabase."""
+    try:
+        # Asegurar que se usen campos permitidos
+        data = {
+            "termino": term_data.get("termino"),
+            "categoria": term_data.get("categoria", "negocio"),
+            "definicion": term_data.get("definicion"),
+            "ejemplo": term_data.get("ejemplo"),
+            "fuente": term_data.get("fuente"),
+            "confianza": term_data.get("confianza", "usuario"),
+            "autor": term_data.get("autor", "sistema")
+        }
+        term_id = term_data.get("id")
+        if term_id:
+            result = supabase.table("glosario").update(data).eq("id", term_id).execute()
+        else:
+            result = supabase.table("glosario").insert(data).execute()
+        return {"status": "success", "data": result.data[0] if result.data else None}
+    except Exception as e:
+        print(f"[ERROR] Error al guardar término en glosario: {e}")
+        return {"status": "error", "error": str(e)}
+
+def delete_glossary_term(term_id):
+    """Realiza un soft delete (desactiva) de un término del glosario en Supabase."""
+    try:
+        result = supabase.table("glosario").update({"activo": False}).eq("id", term_id).execute()
+        return {"status": "success", "data": result.data}
+    except Exception as e:
+        print(f"[ERROR] Error al eliminar término: {e}")
+        return {"status": "error", "error": str(e)}
+
 if __name__ == "__main__":
     sample_code = """
     function login(user, pass) {
@@ -194,3 +301,4 @@ if __name__ == "__main__":
     """
     spec = convert_code_to_spec(sample_code)
     print(json.dumps(spec, indent=2, ensure_ascii=False))
+

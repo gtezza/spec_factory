@@ -7,7 +7,7 @@ from flask_cors import CORS
 import os
 import json
 from dotenv import load_dotenv
-from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user
+from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term
 
 load_dotenv(dotenv_path='env/.env')
 
@@ -42,6 +42,22 @@ def login():
         else:
             return jsonify({"error": "Credenciales inválidas"}), 401
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/users/create', methods=['POST'])
+def add_user():
+    try:
+        data = request.json
+        required = ['full_name', 'email', 'password', 'role']
+        if not all(k in data for k in required):
+            return jsonify({"error": "Faltan campos obligatorios"}), 400
+            
+        result = create_user(data)
+        if result['status'] == 'success':
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -94,6 +110,111 @@ def search():
         results = search_specifications(query, threshold, max_results)
         return jsonify({"status": "success", "results": results, "count": len(results)})
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary', methods=['GET'])
+def glossary_list():
+    try:
+        categoria = request.args.get('categoria')
+        data = get_glossary(categoria)
+        return jsonify({"status": "success", "data": data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary/propose', methods=['POST'])
+def glossary_propose():
+    try:
+        data = request.json
+        term = data.get('termino')
+        context = data.get('contexto', '')
+        
+        if not term:
+            return jsonify({"error": "Término requerido"}), 400
+            
+        proposal = propose_glossary_term(term, context)
+        if "error" in proposal:
+            return jsonify(proposal), 500
+            
+        return jsonify({"status": "success", "proposal": proposal}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary/confirm', methods=['POST'])
+def glossary_confirm():
+    try:
+        data = request.json
+        # data debería contener: termino, definicion, categoria, ejemplo, fuente, confianza, autor
+        required = ['termino', 'definicion', 'categoria']
+        if not all(k in data for k in required):
+            return jsonify({"error": "Faltan campos obligatorios"}), 400
+            
+        result = save_glossary_term(data)
+        if result['status'] == 'success':
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary/<term_id>', methods=['PUT'])
+def glossary_update(term_id):
+    try:
+        data = request.json
+        data['id'] = term_id
+        result = save_glossary_term(data)
+        if result['status'] == 'success':
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary/<term_id>', methods=['DELETE'])
+def glossary_delete(term_id):
+    try:
+        result = delete_glossary_term(term_id)
+        if result['status'] == 'success':
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/glossary/export/md', methods=['GET'])
+def glossary_export_md():
+    try:
+        terms = get_glossary()
+        
+        # Agrupar por categoría
+        grouped = {"negocio": [], "tecnico": [], "acronimo": [], "sistema": []}
+        for t in terms:
+            cat = t.get('categoria', 'negocio')
+            if cat in grouped:
+                grouped[cat].append(t)
+        
+        # Construir MD
+        md = "# Glosario de Spec Factory\n\n"
+        md += "Este documento es una foto exportada del Glosario Inteligente.\n\n"
+        
+        categorias_nombres = {
+            "negocio": "Términos de Negocio",
+            "tecnico": "Términos Técnicos",
+            "acronimo": "Acrónimos",
+            "sistema": "Términos del Sistema"
+        }
+        
+        for cat_key, cat_name in categorias_nombres.items():
+            if grouped[cat_key]:
+                md += f"## {cat_name}\n\n"
+                for t in grouped[cat_key]:
+                    md += f"**{t['termino']}**:\n"
+                    md += f"> {t['definicion']}\n"
+                    if t.get('ejemplo'):
+                        md += f"> *Ejemplo: {t['ejemplo']}*\n"
+                    md += "\n"
+        
+        return jsonify({"status": "success", "markdown": md}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
