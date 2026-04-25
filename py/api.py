@@ -7,7 +7,7 @@ from flask_cors import CORS
 import os
 import json
 from dotenv import load_dotenv
-from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term
+from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term, update_specification_status, get_specification_history
 
 load_dotenv(dotenv_path='env/.env')
 
@@ -215,6 +215,31 @@ def glossary_export_md():
                     md += "\n"
         
         return jsonify({"status": "success", "markdown": md}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specifications/status', methods=['POST'])
+def update_status():
+    try:
+        data = request.json
+        spec_id = data.get('spec_id')
+        status = data.get('status')
+        user_id = data.get('user_id')
+        comment = data.get('comment')
+        
+        if not all([spec_id, status, user_id]):
+            return jsonify({"error": "Faltan datos obligatorios"}), 400
+            
+        result = update_specification_status(spec_id, status, user_id, comment)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specifications/<spec_id>/history', methods=['GET'])
+def get_history(spec_id):
+    try:
+        data = get_specification_history(spec_id)
+        return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

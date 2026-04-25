@@ -151,7 +151,7 @@
                         <div id="spec-preview" class="preview-content">
                             <div class="stat-label">La especificación generada aparecerá aquí.</div>
                         </div>
-                        <div id="preview-actions" style="margin-top: 15px; display: none;">
+                        <div id="preview-actions" style="margin-top: 15px; display: none; gap: 10px; flex-wrap: wrap;">
                             <button class="btn btn-primary" id="btn-save-spec">
                                 <i class="ri-save-line"></i> Guardar Spec
                             </button>
@@ -161,6 +161,24 @@
                             <button class="btn btn-secondary" id="btn-share-spec">
                                 <i class="ri-share-forward-line"></i> Compartir
                             </button>
+                            
+                            <!-- Botones de Aprobación (Solo para Aprobadores) -->
+                            <div id="approval-actions" style="display: none; gap: 10px;">
+                                <button class="btn btn-success" id="btn-approve-spec">
+                                    <i class="ri-checkbox-circle-line"></i> Aprobar
+                                </button>
+                                <button class="btn btn-danger" id="btn-reject-spec">
+                                    <i class="ri-close-circle-line"></i> Rechazar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Historial -->
+                        <div id="spec-history-section" class="history-section" style="display: none;">
+                            <h4><i class="ri-history-line"></i> Historial de Revisiones</h4>
+                            <div id="spec-history-list" class="history-list">
+                                <!-- Se cargará dinámicamente -->
+                            </div>
                         </div>
                     </div>
             </section>
@@ -385,6 +403,26 @@
             <p style="font-size: 11px; margin-top: 30px; opacity: 0.4;">
                 Acceso restringido según SDD v1.1 | Gerardo Tezza
             </p>
+        </div>
+    </div>
+
+    <!-- Modal Rechazo -->
+    <div id="reject-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3><i class="ri-error-warning-line"></i> Motivo del Rechazo</h3>
+                <button class="btn-close" id="close-reject-modal"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; opacity: 0.7; margin-bottom: 10px;">Por favor, describe los cambios necesarios o motivos del rechazo:</label>
+                <textarea id="rejection-reason-text" class="glass" style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; resize: none; outline: none;" placeholder="Ej: Faltan requerimientos de seguridad en el módulo de pagos..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn" id="btn-cancel-reject">Cancelar</button>
+                <button class="btn btn-danger" id="btn-confirm-reject">
+                    <i class="ri-close-circle-line"></i> Confirmar Rechazo
+                </button>
+            </div>
         </div>
     </div>
 

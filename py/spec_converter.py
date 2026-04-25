@@ -145,7 +145,58 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media'):
     }
     
     result = supabase.table("specifications").insert(data).execute()
+    
+    # Registrar creación en el historial
+    if result.data:
+        try:
+            history_data = {
+                "spec_id": result.data[0]['id'],
+                "status": "Borrador",
+                "user_id": author_id,
+                "comment": "Especificación generada inicialmente."
+            }
+            supabase.table("spec_history").insert(history_data).execute()
+        except Exception as e:
+            print(f"[WARN] No se pudo crear historial inicial: {e}")
+            
     return result.data
+
+def update_specification_status(spec_id, status, user_id, comment=None):
+    """Actualiza el estado de una spec y registra el evento en el historial."""
+    try:
+        # 1. Actualizar tabla principal
+        update_data = {"status": status}
+        if status == "Aprobada":
+            update_data["approver_id"] = user_id
+            
+        supabase.table("specifications").update(update_data).eq("id", spec_id).execute()
+        
+        # 2. Insertar en historial
+        history_data = {
+            "spec_id": spec_id,
+            "status": status,
+            "user_id": user_id,
+            "comment": comment
+        }
+        supabase.table("spec_history").insert(history_data).execute()
+        
+        return {"status": "success"}
+    except Exception as e:
+        print(f"[ERROR] update_specification_status: {e}")
+        return {"status": "error", "error": str(e)}
+
+def get_specification_history(spec_id):
+    """Obtiene el historial de cambios de una especificación con nombres de usuario."""
+    try:
+        result = supabase.table("spec_history")\
+            .select("*, usuarios(full_name)")\
+            .eq("spec_id", spec_id)\
+            .order("created_at", desc=True)\
+            .execute()
+        return result.data
+    except Exception as e:
+        print(f"[ERROR] get_specification_history: {e}")
+        return []
 
 def validate_user(email, password):
     """Valida las credenciales de un usuario contra la tabla usuarios usando hashing."""

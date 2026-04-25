@@ -15,8 +15,24 @@
         'create-view': document.getElementById('create-view'),
         'settings-view': document.getElementById('settings-view'),
     };
+    
+    // Variables de Estado de Aplicación
+    let currentUser = null;
+    let currentViewingSpecId = null;
 
-    let currentUser = null; // Guardará el objeto de perfil del usuario logueado
+    // Elementos de Aprobación
+    const rejectModal = document.getElementById('reject-modal');
+    const rejectionReasonText = document.getElementById('rejection-reason-text');
+    const btnApproveSpec = document.getElementById('btn-approve-spec');
+    const btnRejectSpec = document.getElementById('btn-reject-spec');
+    const btnConfirmReject = document.getElementById('btn-confirm-reject');
+    const btnCancelReject = document.getElementById('btn-cancel-reject');
+    const closeRejectModal = document.getElementById('close-reject-modal');
+    const approvalActionsArea = document.getElementById('approval-actions');
+    const specHistorySection = document.getElementById('spec-history-section');
+    const specHistoryList = document.getElementById('spec-history-list');
+
+    // Guardará el objeto de perfil del usuario logueado
 
     function switchView(viewId) {
         console.log('Cambiando a vista:', viewId);
@@ -261,31 +277,17 @@
 
             if (result.status === 'success') {
                 const spec = result.spec;
-                let html = `
-                    <div class="generated-spec">
-                        <h2>${spec.title}</h2>
-                        <p><strong>Propósito:</strong> ${spec.introduction.purpose}</p>
-                        
-                        <h3>Funciones del Producto</h3>
-                        <ul>
-                            ${spec.product_overview.functions.map(f => `<li>${f}</li>`).join('')}
-                        </ul>
-                        
-                        <h3>Requisitos Funcionales</h3>
-                        <ul>
-                            ${spec.requirements.functional.map(r => `<li><strong>${r.id}:</strong> ${r.statement}</li>`).join('')}
-                        </ul>
-
-                        ${spec.introduction.definitions && spec.introduction.definitions.length > 0 ? `
-                        <h3>Glosario / Definiciones Clave</h3>
-                        <ul>
-                            ${spec.introduction.definitions.map(d => `<li>${d}</li>`).join('')}
-                        </ul>
-                        ` : ''}
-                    </div>
-                `;
-                specPreview.innerHTML = html;
+                currentViewingSpecId = result.db_result ? result.db_result[0].id : null;
+                
+                renderSpecHTML(spec);
                 previewActions.style.display = 'flex';
+                
+                // Mostrar historial (estará vacío inicialmente)
+                if (currentViewingSpecId) loadSpecHistory(currentViewingSpecId);
+                
+                // Mostrar botones de aprobación si corresponde
+                manageApprovalButtons('Borrador');
+                
                 alert('¡Especificación generada!');
             } else {
                 throw new Error(result.error || 'Error desconocido');
@@ -298,6 +300,145 @@
             btnConvert.disabled = false;
         }
     });
+
+    function renderSpecHTML(spec) {
+        let html = `
+            <div class="generated-spec">
+                <h2>${spec.title}</h2>
+                <p><strong>Propósito:</strong> ${spec.introduction.purpose}</p>
+                
+                <h3>Funciones del Producto</h3>
+                <ul>
+                    ${spec.product_overview.functions.map(f => `<li>${f}</li>`).join('')}
+                </ul>
+                
+                <h3>Requisitos Funcionales</h3>
+                <ul>
+                    ${spec.requirements.functional.map(r => `<li><strong>${r.id}:</strong> ${r.statement}</li>`).join('')}
+                </ul>
+
+                ${spec.introduction.definitions && spec.introduction.definitions.length > 0 ? `
+                <h3>Glosario / Definiciones Clave</h3>
+                <ul>
+                    ${spec.introduction.definitions.map(d => `<li>${d}</li>`).join('')}
+                </ul>
+                ` : ''}
+            </div>
+        `;
+        specPreview.innerHTML = html;
+    }
+
+    async function loadSpecHistory(specId) {
+        if (!specId) return;
+        try {
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/specifications/${specId}/history`);
+            const data = await res.json();
+            
+            if (data.status === 'success' && data.data.length > 0) {
+                specHistorySection.style.display = 'block';
+                specHistoryList.innerHTML = data.data.map(h => `
+                    <div class="history-item">
+                        <div class="history-meta">
+                            <span class="history-status badge-${h.status.toLowerCase()}">${h.status}</span>
+                            <span>${new Date(h.created_at).toLocaleString()}</span>
+                        </div>
+                        <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600;">${h.usuarios?.full_name || 'Sistema'}</div>
+                        <div class="history-comment">${h.comment || 'Sin comentarios.'}</div>
+                    </div>
+                `).join('');
+            } else {
+                specHistorySection.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Error cargando historial:', e);
+        }
+    }
+
+    function manageApprovalButtons(status) {
+        if (!currentUser) return;
+        
+        // Solo mostrar si el usuario es aprovador o admin y la spec NO está aprobada
+        const canApprove = (currentUser.role_name === 'aprovador' || currentUser.role_name === 'admin');
+        const needsAction = (status !== 'Aprobada');
+
+        if (canApprove && needsAction) {
+            approvalActionsArea.style.display = 'flex';
+        } else {
+            approvalActionsArea.style.display = 'none';
+        }
+    }
+
+    // Handlers de Aprobación/Rechazo
+    btnApproveSpec?.addEventListener('click', async () => {
+        if (!confirm('¿Deseas aprobar esta especificación oficialmente?')) return;
+        await updateStatus('Aprobada', 'Aprobación final del sistema.');
+    });
+
+    btnRejectSpec?.addEventListener('click', () => {
+        rejectModal.style.display = 'flex';
+        rejectionReasonText.value = '';
+    });
+
+    closeRejectModal?.addEventListener('click', () => rejectModal.style.display = 'none');
+    btnCancelReject?.addEventListener('click', () => rejectModal.style.display = 'none');
+
+    btnConfirmReject?.addEventListener('click', async () => {
+        const comment = rejectionReasonText.value.trim();
+        if (!comment) return alert('Por favor, ingresa el motivo del rechazo.');
+        
+        await updateStatus('Rechazada', comment);
+        rejectModal.style.display = 'none';
+    });
+
+    async function updateStatus(status, comment) {
+        if (!currentViewingSpecId || !currentUser) return;
+
+        try {
+            const res = await fetch(`${APP_CONFIG.SERVER.ENDPOINT}/api/specifications/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    spec_id: currentViewingSpecId,
+                    status: status,
+                    user_id: currentUser.id,
+                    comment: comment
+                })
+            });
+
+            const result = await res.json();
+            if (result.status === 'success') {
+                alert(`Estado actualizado a: ${status}`);
+                loadSpecHistory(currentViewingSpecId);
+                manageApprovalButtons(status);
+                loadRecentSpecs(); // Refrescar tablero
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (e) {
+            alert('Error de conexión al actualizar estado.');
+        }
+    }
+
+    // Reemplazar la función global para ver spec
+    window.viewSpec = async function(specId) {
+        if (!sbClient) return;
+        try {
+            const { data, error } = await sbClient.from('specifications').select('*').eq('id', specId).single();
+            if (error) throw error;
+
+            currentViewingSpecId = specId;
+            switchView('create-view'); // Reutilizamos el panel de previsualización
+            renderSpecHTML(data.content);
+            previewActions.style.display = 'flex';
+            loadSpecHistory(specId);
+            manageApprovalButtons(data.status);
+            
+            // Hacer scroll hasta la vista previa
+            document.querySelector('.preview-container').scrollIntoView({ behavior: 'smooth' });
+        } catch (e) {
+            alert('Error al cargar la especificación: ' + e.message);
+        }
+    };
 
     // Eventos de ExportManager
     document.getElementById('btn-download-pdf')?.addEventListener('click', () => {
@@ -622,9 +763,9 @@
                     </td>
                     <td>${spec.usuarios?.full_name || 'IA System'}</td>
                     <td><span class="badge ${spec.urgency === 'Alta' ? 'badge-high' : ''}">${spec.urgency}</span></td>
-                    <td><span class="status-dot ${spec.status === 'Aprobada' ? 'status-approved' : 'status-draft'}"></span> ${spec.status}</td>
+                    <td><span class="status-dot ${spec.status === 'Aprobada' ? 'status-approved' : (spec.status === 'Rechazada' ? 'status-rejected' : 'status-draft')}"></span> ${spec.status}</td>
                     <td>
-                        <button class="btn-icon" title="Ver" onclick="alert('Funcionalidad de visor en desarrollo')"><i class="ri-eye-line"></i></button>
+                        <button class="btn-icon" title="Ver" onclick="window.viewSpec('${spec.id}')"><i class="ri-eye-line"></i></button>
                         <button class="btn-icon" title="Exportar" onclick="window.ExportManager.openModal()"><i class="ri-share-forward-line"></i></button>
                     </td>
                 </tr>
