@@ -36,11 +36,23 @@ const ExportManager = {
         this.modal.style.display = 'none';
     },
 
+    setStatus(html) {
+        if (this.statusEl) {
+            this.statusEl.innerHTML = html;
+        } else {
+            console.log('[ExportManager]', html.replace(/<[^>]*>/g, ''));
+        }
+    },
+
     async handleExport(type) {
         const content = document.getElementById('spec-preview');
+        if (!content || !content.querySelector('h2')) {
+            alert('Primero generá una especificación antes de exportar.');
+            return;
+        }
         const title = content.querySelector('h2')?.innerText || 'especificacion';
         
-        this.statusEl.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Preparando ${type.toUpperCase()}...`;
+        this.setStatus(`<i class="ri-loader-4-line ri-spin"></i> Preparando ${type.toUpperCase()}...`);
 
         try {
             switch (type) {
@@ -51,16 +63,16 @@ const ExportManager = {
                     await this.exportToPPTX(content, title);
                     break;
                 case 'drive':
-                    this.statusEl.innerText = 'Funcionalidad en desarrollo: Requiere Client ID de Google.';
+                    this.setStatus('Funcionalidad en desarrollo: Requiere Client ID de Google.');
                     break;
                 case 'server':
                     await this.exportToServer(content, title);
                     break;
             }
-            this.statusEl.innerHTML = `<span style="color: var(--accent-green)">¡${type.toUpperCase()} completado con éxito!</span>`;
+            this.setStatus(`<span style="color: var(--accent-green)">¡${type.toUpperCase()} completado con éxito!</span>`);
         } catch (error) {
             console.error('Error al exportar:', error);
-            this.statusEl.innerHTML = `<span style="color: var(--accent-red)">Error: ${error.message}</span>`;
+            this.setStatus(`<span style="color: var(--accent-red)">Error: ${error.message}</span>`);
         }
     },
 
