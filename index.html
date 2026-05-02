@@ -72,7 +72,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Prioridad / Criticidad</label>
-                            <select id="select-priority" class="select-custom">
+                            <select id="select-criticality" class="select-custom">
                                 <option value="Baja">Baja</option>
                                 <option value="Media" selected>Media</option>
                                 <option value="Alta">Alta</option>
@@ -236,6 +236,25 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal de Advertencia -->
+    <div id="modal-warning" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="width: 400px; text-align: center; border-top: 5px solid #ef4444;">
+            <div style="font-size: 48px; color: #ef4444; margin-bottom: 16px;">
+                <i class="ri-error-warning-fill"></i>
+            </div>
+            <h2 style="margin-bottom: 12px; color: var(--text-dark);">¡Atención Requerida!</h2>
+            <p id="warning-message" style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+                Existen campos obligatorios sin completar que son críticos para la gobernanza.
+            </p>
+            <button class="btn btn-primary" id="btn-close-warning" style="width: 100%; padding: 12px;">
+                ENTENDIDO, COMPLETAR
+            </button>
+        </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="js/config.js"></script>
     <script src="js/app.js"></script>
