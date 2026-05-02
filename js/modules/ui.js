@@ -35,3 +35,39 @@ export function toggleModal(modalElement, show = true) {
         modalElement.style.display = show ? 'flex' : 'none';
     }
 }
+
+export function showAlertBanner(message, type = 'info', sticky = false) {
+    if (!elements.alertContainer) return;
+    
+    const banner = document.createElement('div');
+    banner.className = `alert-banner ${type}`;
+    
+    const icon = type === 'success' ? 'ri-checkbox-circle-fill' : 
+                 type === 'warning' ? 'ri-alert-fill' : 
+                 type === 'error' ? 'ri-close-circle-fill' : 'ri-information-fill';
+
+    banner.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="${icon}" style="font-size: 18px;"></i>
+            <span>${message}</span>
+        </div>
+        <i class="ri-close-line close-btn" style="font-size: 18px;"></i>
+    `;
+
+    const closeBtn = banner.querySelector('.close-btn');
+    closeBtn.onclick = () => {
+        banner.style.animation = 'fadeOut 0.3s ease-out forwards';
+        setTimeout(() => banner.remove(), 300);
+    };
+
+    elements.alertContainer.appendChild(banner);
+
+    if (!sticky) {
+        setTimeout(() => {
+            if (banner.parentElement) {
+                banner.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => banner.remove(), 300);
+            }
+        }, 8000);
+    }
+}

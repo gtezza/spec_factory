@@ -46,6 +46,7 @@ export const elements = {
     auditContainer: document.getElementById('audit-log-container'),
     btnLogout: document.getElementById('btn-logout'),
     toastContainer: document.getElementById('toast-container'),
+    alertContainer: document.getElementById('alert-banner-container'),
     modalWarning: document.getElementById('modal-warning'),
     btnCloseWarning: document.getElementById('btn-close-warning')
 };
