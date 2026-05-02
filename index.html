@@ -3,431 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spec Factory | Automatización IEEE 830</title>
-    <link rel="icon" href="data:,">
+    <title>Spec Factory | Analista de Triage y Gobernanza</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <!-- Dependencias ExportManager -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.11.0/libs/pptxgen.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- SDK de Supabase -->
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="bg-blobs">
-        <div class="blob"></div>
-        <div class="blob blob-2"></div>
-    </div>
-
-    <div class="app-container">
+    <div class="app-layout">
         <!-- Sidebar -->
-        <aside class="sidebar glass">
-            <div class="logo">SPEC FACTORY</div>
-            <nav class="nav-links">
-                <a href="#" class="nav-item active" id="nav-dashboard">
-                    <i class="ri-dashboard-line"></i>
-                    <span>Tablero</span>
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ri-ruler-2-line"></i>
+                SPEC FACTORY
+            </div>
+            <nav class="nav-group">
+                <a href="#" class="nav-item active" id="nav-triage">
+                    <i class="ri-survey-line"></i>
+                    <span>Triage de Ideas</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-create">
-                    <i class="ri-add-circle-line"></i>
-                    <span>Nueva Spec</span>
+                <a href="#" class="nav-item" id="nav-glossary">
+                    <i class="ri-book-3-line"></i>
+                    <span>Gobernanza de Datos</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-specs">
-                    <i class="ri-file-list-3-line"></i>
-                    <span>Especificaciones</span>
+                <a href="#" class="nav-item" id="nav-projects">
+                    <i class="ri-folder-6-line"></i>
+                    <span>Proyectos Activos</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-settings">
-                    <i class="ri-settings-4-line"></i>
-                    <span>Configuración</span>
+                <a href="#" class="nav-item" id="nav-admin">
+                    <i class="ri-admin-line"></i>
+                    <span>Administración</span>
                 </a>
             </nav>
+            <div class="nav-footer">
+                <a href="#" class="nav-item" id="btn-logout">
+                    <i class="ri-logout-box-r-line"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <header class="top-bar glass">
-                <div class="search-bar">
-                    <i class="ri-search-line"></i>
-                    <input type="text" id="semantic-search" placeholder="Búsqueda semántica (ej. auth, reportes)...">
+        <main class="main-container">
+            <header class="top-nav">
+                <div class="breadcrumb">
+                    Proyectos / <span id="current-request-id">NUEVA SOLICITUD</span>
                 </div>
-                <div class="user-profile" id="user-profile-header" style="display: flex; align-items: center; gap: 15px;">
-                    <div id="user-info" style="text-align: right; display: none;">
-                        <div id="header-user-name" style="font-weight: 600; font-size: 14px;">Usuario</div>
-                        <div id="header-user-role" style="font-size: 11px; opacity: 0.6; text-transform: uppercase;">Rol</div>
-                    </div>
-                    <button class="btn btn-primary" id="btn-new-spec">
-                        <i class="ri-add-line"></i> Nueva Spec
-                    </button>
+                <div class="user-meta" id="user-display" style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+                    <span id="user-name" style="font-weight: 500;">Cargando...</span>
+                    <div class="avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #DEEBFF; color: #0052CC; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">GT</div>
                 </div>
             </header>
 
-            <!-- Dynamic Sections -->
-            <section id="dashboard-view">
-                <!-- Barra de Filtros -->
-                <div class="glass" style="margin-bottom: 20px; padding: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Filtrar por Sector</label>
-                        <select id="filter-sector" class="glass" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
-                            <option value="all">Todos los Sectores</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1; min-width: 200px;">
-                        <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Filtrar por Urgencia</label>
-                        <select id="filter-urgency" class="glass" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
-                            <option value="all">Todas las Urgencias</option>
-                            <option value="Baja">Baja</option>
-                            <option value="Media">Media</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Crítica">Crítica</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: flex-end; height: 100%; padding-top: 20px;">
-                        <button id="btn-apply-filters" class="btn btn-primary" style="padding: 8px 20px;">
-                            <i class="ri-filter-3-line"></i> Aplicar
+            <div class="content-body">
+                <div class="triage-grid">
+                    <!-- Column 1: Metadatos y Control -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="ri-equalizer-line"></i>
+                            Clasificación y RBAC
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sector Solicitante</label>
+                            <select id="select-sector" class="select-custom">
+                                <option value="">Seleccionar Sector...</option>
+                                <!-- Dinámico desde Supabase -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prioridad / Criticidad</label>
+                            <select id="select-priority" class="select-custom">
+                                <option value="Baja">Baja</option>
+                                <option value="Media" selected>Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Creador (ID)</label>
+                            <input type="text" id="display-creator" class="input-custom" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Aprobador Sugerido</label>
+                            <select id="select-approver" class="select-custom">
+                                <option value="">Seleccionar Aprobador...</option>
+                                <!-- Dinámico desde Supabase -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Estado Actual</label>
+                            <div id="current-status" style="padding: 8px; border-radius: 4px; font-weight: 700; text-align: center; background: #EBECF0; color: #42526E;">
+                                BORRADOR
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 10px;">
+                            <i class="ri-save-3-line"></i> Guardar Borrador
                         </button>
                     </div>
-                </div>
 
-                <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-value" id="count-total">0</div>
-                            <div class="stat-label">Specs Totales</div>
+                    <!-- Column 2: Cuerpo del Requerimiento -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="ri-lightbulb-line"></i>
+                            Definición de la Idea
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="count-approved">0</div>
-                            <div class="stat-label">Aprobadas</div>
+                        <div class="form-group">
+                            <label class="form-label">Objetivo de la Intención</label>
+                            <textarea id="text-objective" class="textarea-custom" placeholder="¿Qué se busca lograr con este requerimiento?"></textarea>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="count-pending">0</div>
-                            <div class="stat-label">Pendientes</div>
+                        <div class="form-group">
+                            <label class="form-label">Beneficios Esperados</label>
+                            <textarea id="text-benefits" class="textarea-custom" placeholder="Ganancias cualitativas y cuantitativas..."></textarea>
                         </div>
-                </div>
-
-                <!-- Resultados de Búsqueda Semántica -->
-                <div id="search-results" class="glass" style="display:none; margin-top:20px; padding:20px;"></div>
-
-                <div class="card recent-activity">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h2 style="margin:0">Especificaciones Recientes</h2>
-                        <button class="btn btn-secondary" onclick="window.location.reload()"><i class="ri-refresh-line"></i> Actualizar</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="recent-specs-table">
-                            <thead>
-                                <tr>
-                                    <th>Especificación</th>
-                                    <th>Analista</th>
-                                    <th>Urgencia</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se carga vía JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Vive Coding View (Hidden by default) -->
-            <section id="create-view" style="display: none; height: 100%;">
-                <div class="live-coding-panel">
-                    <div class="editor-container glass">
-                        <h3>Live Coding</h3>
-                        <p class="stat-label">Pega tu código aquí para generar la spec</p>
-                        <textarea class="code-editor" id="code-input" placeholder="// Escribe o pega tu código aquí..."></textarea>
-                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                            <button class="btn btn-primary" id="btn-convert">
-                                <i class="ri-magic-line"></i> Convertir a Spec
-                            </button>
+                        <div class="form-group">
+                            <label class="form-label">Retorno de Inversión (ROI)</label>
+                            <input type="text" id="input-roi" class="input-custom" placeholder="Ej: Ahorro de 20hs/semana, $5000 USD/mes">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">La Idea (Vibe Coding)</label>
+                            <textarea id="text-idea" class="textarea-custom textarea-idea" placeholder="Describe tu idea en lenguaje natural. No te preocupes por el formato, la IA lo estructurará..."></textarea>
                         </div>
                     </div>
-                    <div class="preview-container glass">
-                        <h3>Vista Previa (IEEE 830)</h3>
-                        <div id="spec-preview" class="preview-content">
-                            <div class="stat-label">La especificación generada aparecerá aquí.</div>
-                        </div>
-                        <div id="preview-actions" style="margin-top: 15px; display: none; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-primary" id="btn-save-spec">
-                                <i class="ri-save-line"></i> Guardar Spec
-                            </button>
-                            <button class="btn" id="btn-download-pdf">
-                                <i class="ri-file-pdf-line"></i> PDF
-                            </button>
-                            <button class="btn btn-secondary" id="btn-share-spec">
-                                <i class="ri-share-forward-line"></i> Compartir
-                            </button>
-                            
-                            <!-- Botones de Aprobación (Solo para Aprobadores) -->
-                            <div id="approval-actions" style="display: none; gap: 10px;">
-                                <button class="btn btn-success" id="btn-approve-spec">
-                                    <i class="ri-checkbox-circle-line"></i> Aprobar
-                                </button>
-                                <button class="btn btn-danger" id="btn-reject-spec">
-                                    <i class="ri-close-circle-line"></i> Rechazar
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- Sección de Historial -->
-                        <div id="spec-history-section" class="history-section" style="display: none;">
-                            <h4><i class="ri-history-line"></i> Historial de Revisiones</h4>
-                            <div id="spec-history-list" class="history-list">
-                                <!-- Se cargará dinámicamente -->
+                    <!-- Column 3: Inteligencia y Gobernanza -->
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <!-- IA Chat Refinement -->
+                        <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+                            <div class="card-title">
+                                <i class="ri-robot-2-line"></i>
+                                Análisis IA Triage
                             </div>
-                        </div>
-                    </div>
-            </section>
-
-            <!-- VISTA: CONFIGURACIÓN (Gestión de Usuarios) -->
-            <section id="settings-view" class="view-container" style="display:none; padding: 20px;">
-                <div class="view-header" style="margin-bottom: 30px;">
-                    <h1><i class="ri-settings-4-line"></i> Configuración del Sistema</h1>
-                    <p style="opacity: 0.7;">Gestión de usuarios, roles y sectores de la organización.</p>
-                </div>
-
-                <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;">
-                    <!-- Formulario de Creación -->
-                    <div class="card glass" style="padding: 25px;">
-                        <h3 style="margin-top: 0;"><i class="ri-user-add-line"></i> Crear Nuevo Usuario</h3>
-                        <form id="create-user-form" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                            <div class="form-group">
-                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Nombre Completo</label>
-                                <input type="text" id="new-user-name" class="glass" placeholder="Ej: Juan Pérez" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                            </div>
-                            <div class="form-group">
-                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Correo Electrónico</label>
-                                <input type="email" id="new-user-email" class="glass" placeholder="usuario@specfactory.com" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                            </div>
-                            <div class="form-group">
-                                <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Contraseña Temporal</label>
-                                <input type="password" id="new-user-pass" class="glass" placeholder="••••••••" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                <div class="form-group">
-                                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Rol</label>
-                                    <select id="new-user-role" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                                        <option value="visor">Visor</option>
-                                        <option value="creador">Creador</option>
-                                        <option value="aprovador">Aprobador</option>
-                                        <option value="admin">Administrador</option>
-                                    </select>
+                            <div class="chat-container">
+                                <div class="chat-messages" id="chat-messages">
+                                    <div class="message message-ai">
+                                        Hola. Soy tu Analista de Triage. Describe tu idea en la columna central y la analizaré según las políticas de GT Data Consulting.
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Sector</label>
-                                    <select id="new-user-sector-form" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                                        <!-- Se cargará dinámicamente -->
-                                    </select>
+                                <div class="chat-input-area">
+                                    <input type="text" id="chat-input" class="input-custom" style="flex: 1;" placeholder="Responder a la IA...">
+                                    <button class="btn btn-primary" id="btn-send-chat">
+                                        <i class="ri-send-plane-fill"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary" style="margin-top: 10px; width: 100%; padding: 12px;">
-                                <i class="ri-save-line"></i> Guardar Usuario
+                        </div>
+
+                        <!-- Dictionary Module -->
+                        <div class="card">
+                            <div class="card-title">
+                                <i class="ri-book-mark-line"></i>
+                                Diccionario de Términos
+                            </div>
+                            <div id="dictionary-list" style="max-height: 300px; overflow-y: auto;">
+                                <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">
+                                    Ningún término técnico detectado aún.
+                                </p>
+                            </div>
+                            <button class="btn btn-ghost" id="btn-add-term" style="width: 100%; margin-top: 10px; font-size: 12px;">
+                                <i class="ri-add-line"></i> Agregar Término Manualmente
                             </button>
-                        </form>
-                    </div>
+                        </div>
 
-                    <!-- Lista de Usuarios -->
-                    <div class="card glass" style="padding: 25px;">
-                        <h3 style="margin-top: 0;"><i class="ri-group-line"></i> Usuarios Registrados</h3>
-                        <div id="users-list-container" style="margin-top: 20px;">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Rol</th>
-                                        <th>Sector</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="users-table-body">
-                                    <!-- Se cargará dinámicamente -->
-                                </tbody>
-                            </table>
+                        <!-- Quality Audit -->
+                        <div class="card" id="audit-log-container" style="display: none;">
+                            <div class="card-title" style="color: var(--danger);">
+                                <i class="ri-error-warning-line"></i>
+                                Alertas de Calidad
+                            </div>
+                            <ul id="audit-log" style="list-style: none; font-size: 12px; color: var(--danger); padding-left: 0;">
+                                <!-- Alertas dinámicas -->
+                            </ul>
                         </div>
                     </div>
                 </div>
-
-                <div class="settings-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 24px;">
-                    <!-- Gestión del Glosario Inteligente -->
-                    <div class="card glass" style="padding: 25px;">
-                        <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
-                            <span><i class="ri-book-3-line"></i> Glosario Inteligente</span>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="btn-new-term" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;">
-                                    <i class="ri-add-line"></i> Nuevo Término
-                                </button>
-                                <button id="btn-export-glossary" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">
-                                    <i class="ri-download-cloud-2-line"></i> Exportar MD
-                                </button>
-                            </div>
-                        </h3>
-                        <p style="opacity: 0.7; font-size: 13px;">Fuente de verdad para el sistema SRS. Se usa para enriquecer y validar términos automáticamente en "Live Coding".</p>
-                        
-                        <div style="margin-top: 20px;">
-                            <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                                <select id="glossary-filter-category" class="glass" style="padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
-                                    <option value="">Todas las Categorías</option>
-                                    <option value="negocio">Negocio</option>
-                                    <option value="tecnico">Técnico</option>
-                                    <option value="acronimo">Acrónimo</option>
-                                    <option value="sistema">Sistema</option>
-                                </select>
-                            </div>
-                            
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Término</th>
-                                        <th>Categoría</th>
-                                        <th>Definición</th>
-                                        <th>Confianza</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="glossary-table-body">
-                                    <tr><td colspan="5" style="text-align:center;opacity:0.6;">Cargando glosario...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 30px; text-align: right;">
-                    <button class="btn btn-primary" id="btn-settings-logout" style="background-color: var(--accent-red); border-color: var(--accent-red);">
-                        <i class="ri-logout-box-r-line"></i> Cerrar Sesión Oficial
-                    </button>
-                </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <!-- Modal Compartir -->
-    <div id="share-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h3>Compartir Especificación</h3>
-                <button class="btn-close" id="close-share-modal"><i class="ri-close-line"></i></button>
-            </div>
-            <div class="share-options">
-                <button class="share-option" data-type="pdf">
-                    <i class="ri-file-pdf-fill"></i>
-                    <span>PDF Local</span>
-                </button>
-                <button class="share-option" data-type="pptx">
-                    <i class="ri-file-ppt-fill"></i>
-                    <span>PowerPoint</span>
-                </button>
-                <button class="share-option" data-type="drive">
-                    <i class="ri-google-fill"></i>
-                    <span>Google Drive</span>
-                </button>
-                <button class="share-option" data-type="server">
-                    <i class="ri-server-line"></i>
-                    <span>Servidor / Web</span>
-                </button>
-            </div>
-            <div id="share-status" class="share-status"></div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Modal Glosario (CRUD) -->
-    <div id="modal-term" class="modal-overlay" style="display: none; z-index: 9999;">
-        <div class="modal-content glass" style="max-width: 500px; width: 90%;">
-            <div class="modal-header">
-                <h3 id="modal-term-title">Nuevo Término</h3>
-                <button class="btn-close" id="close-term-modal"><i class="ri-close-line"></i></button>
-            </div>
-            <form id="term-form" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                <input type="hidden" id="term-id">
-                <div class="form-group">
-                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Término</label>
-                    <input type="text" id="term-name" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                </div>
-                <div class="form-group">
-                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Categoría</label>
-                    <select id="term-category" class="glass" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                        <option value="negocio">Negocio</option>
-                        <option value="tecnico">Técnico</option>
-                        <option value="acronimo">Acrónimo</option>
-                        <option value="sistema">Sistema</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Definición</label>
-                    <textarea id="term-definition" class="glass" required rows="4" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; resize: vertical;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label style="display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px;">Fuente (opcional)</label>
-                    <input type="text" id="term-fuente" class="glass" placeholder="Ej: Industria, Usuario" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 10px; width: 100%; padding: 12px;">
-                    <i class="ri-save-line"></i> Guardar Término
-                </button>
-            </form>
-        </div>
-    </div>
-    <!-- Modal de Acceso (Login Real) -->
-    <div id="modal-login" class="modal-overlay" style="display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <div class="glass" style="width: 400px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50px; left: -50px; width: 100px; height: 100px; background: var(--primary); filter: blur(50px); opacity: 0.3;"></div>
-            
-            <div style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: 800; margin-bottom: 10px;">Spec Factory</div>
-            <p style="opacity: 0.7; margin-bottom: 30px;">Panel de Acceso</p>
+    <!-- Modal de Acceso -->
+    <div id="modal-login" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 8px; font-weight: 700; color: var(--primary);">Bienvenido</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">Ingresa tus credenciales para acceder al sistema de Triage de GT Data Consulting.</p>
             
             <form id="login-form">
-                <div style="text-align: left; margin-bottom: 20px;">
-                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Correo Electrónico</label>
-                    <input type="email" id="login-email" class="glass" placeholder="admin@specfactory.com" required style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                <div class="form-group">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" id="login-email" class="input-custom" placeholder="usuario@gtdata.com" required>
                 </div>
-                
-                <div style="text-align: left; margin-bottom: 25px;">
-                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Contraseña</label>
-                    <input type="password" id="login-password" class="glass" placeholder="••••••••" required style="width: 100%; padding: 12px; border-radius: 8px; color: white; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);">
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="login-password" class="input-custom" placeholder="••••••••" required>
                 </div>
-                
-                <div id="login-error" style="color: #ff4b4b; font-size: 13px; margin-bottom: 20px; display: none;">
-                    <i class="ri-error-warning-line"></i> Credenciales incorrectas
+                <div id="login-error" style="color: var(--danger); font-size: 12px; margin-bottom: 15px; display: none;">
+                    Credenciales inválidas o acceso no permitido.
                 </div>
-
-                <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                    Entrar <i class="ri-login-box-line"></i>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 600;">
+                    ACCEDER AL SISTEMA
                 </button>
             </form>
-            
-            <p style="font-size: 11px; margin-top: 30px; opacity: 0.4;">
-                Acceso restringido según SDD v1.1 | Gerardo Tezza
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 24px;">
+                © 2026 GT Data Consulting | Gobernanza de Datos
             </p>
         </div>
     </div>
 
-    <!-- Modal Rechazo -->
-    <div id="reject-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h3><i class="ri-error-warning-line"></i> Motivo del Rechazo</h3>
-                <button class="btn-close" id="close-reject-modal"><i class="ri-close-line"></i></button>
-            </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 13px; opacity: 0.7; margin-bottom: 10px;">Por favor, describe los cambios necesarios o motivos del rechazo:</label>
-                <textarea id="rejection-reason-text" class="glass" style="width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; resize: none; outline: none;" placeholder="Ej: Faltan requerimientos de seguridad en el módulo de pagos..."></textarea>
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn" id="btn-cancel-reject">Cancelar</button>
-                <button class="btn btn-danger" id="btn-confirm-reject">
-                    <i class="ri-close-circle-line"></i> Confirmar Rechazo
-                </button>
-            </div>
+    <!-- Modal Agregar Término -->
+    <div id="modal-term" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="width: 500px;">
+            <div class="card-title">Nuevo Término de Glosario</div>
+            <form id="term-form">
+                <div class="form-group">
+                    <label class="form-label">Término</label>
+                    <input type="text" id="new-term-name" class="input-custom" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Capa de Gobernanza</label>
+                    <select id="new-term-layer" class="select-custom" required>
+                        <option value="GOBIERNO">GOBIERNO (Políticas Internas)</option>
+                        <option value="TECNICO">TÉCNICO (Arquitectura)</option>
+                        <option value="OBTENIDO">OBTENIDO (Fuentes Externas)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Definición</label>
+                    <textarea id="new-term-definition" class="textarea-custom" required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" id="btn-cancel-term">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Término</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script src="js/config.js"></script>
-    <script src="js/export_manager.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
