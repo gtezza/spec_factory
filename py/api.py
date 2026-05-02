@@ -262,7 +262,7 @@ def get_approvers_list():
         from spec_converter import supabase
         result = supabase.table("usuarios")\
             .select("id, full_name")\
-            .in_("role", ["administrador", "aprovador"])\
+            .in_("role", ["administrador", "aprovador", "aprobador"])\
             .order("full_name")\
             .execute()
         return jsonify({"status": "success", "data": result.data}), 200

@@ -47,27 +47,25 @@ export function showAlertBanner(message, type = 'info', sticky = false) {
                  type === 'error' ? 'ri-close-circle-fill' : 'ri-information-fill';
 
     banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="${icon}" style="font-size: 18px;"></i>
+        <div class="banner-content">
+            <i class="${icon}"></i>
             <span>${message}</span>
         </div>
-        <i class="ri-close-line close-btn" style="font-size: 18px;"></i>
+        <i class="ri-close-line close-btn"></i>
     `;
 
     const closeBtn = banner.querySelector('.close-btn');
-    closeBtn.onclick = () => {
-        banner.style.animation = 'fadeOut 0.3s ease-out forwards';
-        setTimeout(() => banner.remove(), 300);
+    const removeBanner = () => {
+        banner.classList.add('removing');
+        setTimeout(() => banner.remove(), 400);
     };
 
+    closeBtn.onclick = removeBanner;
     elements.alertContainer.appendChild(banner);
 
     if (!sticky) {
         setTimeout(() => {
-            if (banner.parentElement) {
-                banner.style.animation = 'fadeOut 0.3s ease-out forwards';
-                setTimeout(() => banner.remove(), 300);
-            }
-        }, 8000);
+            if (banner.parentElement) removeBanner();
+        }, 6000);
     }
 }

@@ -46,8 +46,8 @@ function updateUserUI(isNewLogin = false) {
     const role = (state.user.role || state.user.role_name || '').toLowerCase();
     console.log(`[AUTH] Usuario: ${state.user.full_name}, Rol detectado: ${role}`);
 
-    // Roles que pueden crear solicitudes
-    const canCreate = ['administrador', 'aprovador', 'creador', 'solicitante'].includes(role);
+    // Roles que pueden crear solicitudes (Normalización resiliente v/b)
+    const canCreate = ['administrador', 'aprovador', 'aprobador', 'creador', 'solicitante'].includes(role);
     
     if (isNewLogin) {
         const welcomeMsg = role === 'administrador' ? 
