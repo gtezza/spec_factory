@@ -50,7 +50,8 @@ export async function saveRequest() {
         idea: elements.textIdea.value,
         creator_id: state.user?.id,
         requester_id: state.user?.id,
-        approver_id: elements.selectApprover.value || null
+        approver_id: elements.selectApprover.value || null,
+        sample_files: state.currentRequest.sample_files || []
     };
 
     if (!req.sector_id || !req.objective || !req.benefits) {

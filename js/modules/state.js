@@ -11,7 +11,8 @@ export const state = {
         benefits: '',
         roi: '',
         idea: '',
-        priority: 'Media'
+        priority: 'Media',
+        sample_files: []
     },
     sectors: [],
     statuses: [],
@@ -48,5 +49,9 @@ export const elements = {
     toastContainer: document.getElementById('toast-container'),
     alertContainer: document.getElementById('alert-banner-container'),
     modalWarning: document.getElementById('modal-warning'),
-    btnCloseWarning: document.getElementById('btn-close-warning')
+    btnCloseWarning: document.getElementById('btn-close-warning'),
+    // Elementos de Carga de Archivos
+    uploadArea: document.getElementById('upload-area'),
+    fileInput: document.getElementById('file-input'),
+    fileList: document.getElementById('file-list')
 };

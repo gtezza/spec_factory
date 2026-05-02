@@ -70,12 +70,22 @@ function updateUserUI(isNewLogin = false) {
             elements.btnSaveRequest.style.opacity = '0.5';
             elements.btnSaveRequest.title = 'No tienes permisos de creación';
         }
+        if (elements.uploadArea) {
+            elements.uploadArea.style.pointerEvents = 'none';
+            elements.uploadArea.style.opacity = '0.5';
+            elements.uploadArea.querySelector('p').innerText = 'Solo lectura: No puedes adjuntar archivos.';
+        }
     } else {
         // Habilitar controles si tiene permiso o es admin
         if (elements.btnSaveRequest) {
             elements.btnSaveRequest.disabled = false;
             elements.btnSaveRequest.style.opacity = '1';
             elements.btnSaveRequest.title = 'Guardar cambios en la base de datos';
+        }
+        if (elements.uploadArea) {
+            elements.uploadArea.style.pointerEvents = 'auto';
+            elements.uploadArea.style.opacity = '1';
+            elements.uploadArea.querySelector('p').innerText = 'Arrastra tus samples aquí o haz clic para subir';
         }
     }
 }

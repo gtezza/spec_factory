@@ -97,7 +97,16 @@
                                 BORRADOR
                             </div>
                         </div>
-                        <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 10px;">
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label class="form-label">Archivos de Referencia (Samples)</label>
+                            <div id="upload-area" class="upload-zone">
+                                <i class="ri-upload-cloud-2-line"></i>
+                                <span>Arrastra archivos o haz clic aquí</span>
+                                <input type="file" id="file-input" multiple style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md,.csv">
+                            </div>
+                            <div id="file-list" class="file-list"></div>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 20px;">
                             <i class="ri-save-3-line"></i> Guardar Borrador
                         </button>
                     </div>
