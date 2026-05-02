@@ -341,6 +341,84 @@ def delete_glossary_term(term_id):
         print(f"[ERROR] Error al eliminar término: {e}")
         return {"status": "error", "error": str(e)}
 
+def analyze_vibe_logic(text):
+    """
+    Analiza una idea en lenguaje natural (Vibe Coding) para extraer:
+    1. Objetivo refinado
+    2. Criticidad sugerida
+    3. ROI estimado
+    4. Términos técnicos detectados del glosario o nuevos
+    """
+    # Obtener glosario para contexto de detección
+    glossary = get_glossary()
+    glossary_list = "\n".join([f"- {t['termino']}: {t['definicion']}" for t in glossary]) if glossary else "Glosario vacío."
+
+    prompt = f"""
+    Actúa como un Arquitecto de Soluciones y Analista de Triage Senior de GT Data Consulting.
+    Tu misión es realizar un análisis semántico profundo ("Vibe Coding Analysis") de la siguiente idea de requerimiento:
+    
+    TEXTO DEL REQUERIMIENTO:
+    "{text}"
+    
+    CONTEXTO DEL GLOSARIO CORPORATIVO ACTUAL:
+    {glossary_list}
+    
+    INSTRUCCIONES DE PROCESAMIENTO:
+    1. OBJETIVO: Redacta un objetivo técnico formal, específico y medible en español.
+    2. CRITICIDAD: Clasifica en [Baja, Media, Alta, Crítica] justificando internamente por impacto en el negocio.
+    3. ROI: Estima el retorno de inversión (ej. ahorro de tiempo, reducción de errores, impacto financiero).
+    4. TÉRMINOS TÉCNICOS (CRÍTICO): 
+       - Identifica palabras clave que ya estén en el GLOSARIO.
+       - Detecta conceptos técnicos complejos, acrónimos o entidades de datos que NO estén en el glosario pero sean esenciales.
+       - Para CADA término detectado, proporciona una definición técnica rigurosa y asígnale una capa:
+         * 'GOBIERNO': Políticas, normas, cumplimiento.
+         * 'TECNICO': Arquitectura, código, infraestructura, datos.
+         * 'OBTENIDO': Datos de fuentes externas o terceros.
+
+    REGLA DE ORO: Si no encuentras términos, ESFUÉRZATE en identificar al menos conceptos base de la arquitectura mencionada (ej. "API", "Base de Datos", "Frontend", etc.).
+
+    RESPONDE ÚNICAMENTE EN JSON CON ESTA ESTRUCTURA:
+    {{
+        "goal": "Objetivo formal...",
+        "criticality": "Alta",
+        "roi": "Ahorro proyectado de...",
+        "terms": [
+            {{ 
+                "term": "Nombre del Término", 
+                "layer": "TECNICO", 
+                "definition": "Definición técnica precisa",
+                "origin": "IA_SUGGESTION"
+            }}
+        ]
+    }}
+    """
+    
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "Eres un experto en gobierno de datos y arquitectura. Solo respondes JSON en español."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        result = json.loads(chat_completion.choices[0].message.content)
+        
+        # Validación mínima de estructura
+        if "terms" not in result: result["terms"] = []
+        if "goal" not in result: result["goal"] = "Objetivo no determinado"
+        
+        return result
+    except Exception as e:
+        print(f"[ERROR] analyze_vibe_logic: {e}")
+        return {
+            "goal": "Error en el análisis",
+            "criticality": "Media",
+            "roi": "N/A",
+            "terms": [],
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     sample_code = """
     function login(user, pass) {

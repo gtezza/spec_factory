@@ -7,7 +7,7 @@ from flask_cors import CORS
 import os
 import json
 from dotenv import load_dotenv
-from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term, update_specification_status, get_specification_history
+from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term, update_specification_status, get_specification_history, analyze_vibe_logic
 
 load_dotenv(dotenv_path='env/.env')
 
@@ -240,6 +240,32 @@ def get_history(spec_id):
     try:
         data = get_specification_history(spec_id)
         return jsonify({"status": "success", "data": data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/analyze-vibe', methods=['POST'])
+def analyze_vibe():
+    try:
+        data = request.json
+        text = data.get('text', '')
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+            
+        result = analyze_vibe_logic(text)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/approvers', methods=['GET'])
+def get_approvers_list():
+    try:
+        from spec_converter import supabase
+        result = supabase.table("usuarios")\
+            .select("id, full_name")\
+            .in_("role_name", ["admin", "aprovador"])\
+            .order("full_name")\
+            .execute()
+        return jsonify({"status": "success", "data": result.data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
