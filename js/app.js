@@ -9,6 +9,7 @@ import { checkSession, login, logout } from './modules/auth.js';
 import { generateRequestId, saveRequest, runQualityAudit } from './modules/triage.js';
 import { sendChatMessage } from './modules/ia.js';
 import { handleNewTermSubmit } from './modules/glossary.js';
+import { apiFetch, endpoints } from './modules/api.js';
 
 const SUPABASE_URL = APP_CONFIG.SUPABASE.URL;
 const SUPABASE_KEY = APP_CONFIG.SUPABASE.ANON_KEY;
