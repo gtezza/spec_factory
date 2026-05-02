@@ -42,23 +42,28 @@ function updateUserUI(isNewLogin = false) {
     elements.userName.innerText = state.user.full_name;
     elements.displayCreator.value = state.user.full_name;
     
-    const role = state.user.role_name?.toLowerCase();
+    // El rol puede venir como 'role' o 'role_name' según la versión del backend
+    const role = (state.user.role || state.user.role_name || '').toLowerCase();
+    console.log(`[AUTH] Usuario: ${state.user.full_name}, Rol detectado: ${role}`);
+
+    // Roles que pueden crear solicitudes
     const canCreate = ['administrador', 'aprovador', 'creador', 'solicitante'].includes(role);
     
     if (isNewLogin) {
         const welcomeMsg = role === 'administrador' ? 
-            `Sesión Iniciada: Modo Administrador (Acceso Total)` : 
+            `Sesión Iniciada: Acceso Total de Administrador` : 
             `Bienvenido, ${state.user.full_name}`;
         showAlertBanner(welcomeMsg, 'success');
     }
 
-    // El rol administrador habilita secciones especiales si existen
+    // El rol administrador habilita secciones especiales
     const adminNavItem = document.getElementById('nav-admin');
     if (adminNavItem) {
         adminNavItem.style.display = (role === 'administrador') ? 'flex' : 'none';
     }
     
-    if (!canCreate) {
+    // Solo mostrar banner de Modo Lectura si NO es administrador Y NO tiene permisos de creación
+    if (!canCreate && role !== 'administrador') {
         showAlertBanner('Modo Lectura: Tu rol actual no permite crear nuevas solicitudes.', 'info', true);
         if (elements.btnSaveRequest) {
             elements.btnSaveRequest.disabled = true;
@@ -66,10 +71,11 @@ function updateUserUI(isNewLogin = false) {
             elements.btnSaveRequest.title = 'No tienes permisos de creación';
         }
     } else {
+        // Habilitar controles si tiene permiso o es admin
         if (elements.btnSaveRequest) {
             elements.btnSaveRequest.disabled = false;
             elements.btnSaveRequest.style.opacity = '1';
-            elements.btnSaveRequest.title = 'Guardar cambios';
+            elements.btnSaveRequest.title = 'Guardar cambios en la base de datos';
         }
     }
 }
