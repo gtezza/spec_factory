@@ -47,10 +47,10 @@ function updateUserUI(isNewLogin = false) {
     console.log(`[AUTH] Usuario: ${state.user.full_name}, Rol detectado: ${role}`);
 
     // Roles que pueden crear solicitudes (Normalización resiliente v/b)
-    const canCreate = ['administrador', 'aprovador', 'aprobador', 'creador', 'solicitante'].includes(role);
+    const canCreate = ['admin', 'administrador', 'aprovador', 'aprobador', 'creador', 'solicitante'].includes(role);
     
     if (isNewLogin) {
-        const welcomeMsg = role === 'administrador' ? 
+        const welcomeMsg = (role === 'administrador' || role === 'admin') ? 
             `Sesión Iniciada: Acceso Total de Administrador` : 
             `Bienvenido, ${state.user.full_name}`;
         showAlertBanner(welcomeMsg, 'success');
@@ -59,11 +59,11 @@ function updateUserUI(isNewLogin = false) {
     // El rol administrador habilita secciones especiales
     const adminNavItem = document.getElementById('nav-admin');
     if (adminNavItem) {
-        adminNavItem.style.display = (role === 'administrador') ? 'flex' : 'none';
+        adminNavItem.style.display = (role === 'administrador' || role === 'admin') ? 'flex' : 'none';
     }
     
     // Solo mostrar banner de Modo Lectura si NO es administrador Y NO tiene permisos de creación
-    if (!canCreate && role !== 'administrador') {
+    if (!canCreate && role !== 'administrador' && role !== 'admin') {
         showAlertBanner('Modo Lectura: Tu rol actual no permite crear nuevas solicitudes.', 'info', true);
         if (elements.btnSaveRequest) {
             elements.btnSaveRequest.disabled = true;
@@ -73,7 +73,8 @@ function updateUserUI(isNewLogin = false) {
         if (elements.uploadArea) {
             elements.uploadArea.style.pointerEvents = 'none';
             elements.uploadArea.style.opacity = '0.5';
-            elements.uploadArea.querySelector('p').innerText = 'Solo lectura: No puedes adjuntar archivos.';
+            const pTag = elements.uploadArea.querySelector('p');
+            if (pTag) pTag.innerText = 'Solo lectura: No puedes adjuntar archivos.';
         }
     } else {
         // Habilitar controles si tiene permiso o es admin
@@ -85,7 +86,8 @@ function updateUserUI(isNewLogin = false) {
         if (elements.uploadArea) {
             elements.uploadArea.style.pointerEvents = 'auto';
             elements.uploadArea.style.opacity = '1';
-            elements.uploadArea.querySelector('p').innerText = 'Arrastra tus samples aquí o haz clic para subir';
+            const pTag = elements.uploadArea.querySelector('p');
+            if (pTag) pTag.innerText = 'Arrastra tus samples aquí o haz clic para subir';
         }
     }
 }
