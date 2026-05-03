@@ -341,7 +341,7 @@ def delete_glossary_term(term_id):
         print(f"[ERROR] Error al desactivar término: {e}")
         return {"status": "error", "error": str(e)}
 
-def analyze_vibe_logic(text):
+def analyze_vibe_logic(text, answers=None):
     """
     Analiza una idea en lenguaje natural (Vibe Coding) para extraer:
     1. Objetivo refinado (IEEE 830 / SMART)
@@ -350,28 +350,38 @@ def analyze_vibe_logic(text):
     4. Riesgos Técnicos y Mitigación
     5. Preguntas de Ingeniería profunda (Discovery)
     6. Sugerencias de Mejora y Arquitectura (Valor Agregado)
+    
+    Si se proporcionan 'answers', se realiza un refinamiento del análisis previo.
     """
+    
+    refinement_context = ""
+    if answers and len(answers) > 0:
+        refinement_context = "\nCONOCIMIENTO ADICIONAL OBTENIDO (Respuestas del usuario a preguntas previas):\n"
+        for item in answers:
+            refinement_context += f"- Pregunta: {item['question']}\n  Respuesta: {item['answer']}\n"
+        
+        refinement_context += "\nINSTRUCCIÓN ESPECIAL: El usuario ha respondido a preguntas de discovery. UTILIZA estas respuestas para eliminar ambigüedades, ajustar los riesgos, precisar el ROI y proponer una arquitectura mucho más específica y técnica. Si una respuesta descarta una funcionalidad, elimínala del análisis."
+
     prompt = f"""
     Actúa como un Arquitecto de Soluciones Senior y Consultor de Estrategia Digital de GT Data Consulting.
     Tu misión es realizar un análisis semántico exhaustivo, de alto nivel técnico y con visión de negocio del siguiente requerimiento:
     
     TEXTO DEL REQUERIMIENTO:
     "{text}"
+    {refinement_context}
     
     INSTRUCCIONES DE PROCESAMIENTO (MÁXIMA PROFUNDIDAD TÉCNICA):
     1. OBJETIVO (SRS IEEE 830): Redacta un objetivo técnico formal siguiendo la metodología SMART y alineado con la sección 3.1 de la norma IEEE 830. Debe ser preciso, verificable y orientado a la implementación.
     2. CRITICIDAD Y GOBERNANZA: Clasifica en [Baja, Media, Alta, Crítica]. Justifica basándote en la Matriz de Riesgos Corporativa: Impacto en Seguridad, Privacidad de Datos (GDPR/Compliance), Continuidad Operativa y Complejidad Técnica.
     3. ANÁLISIS DE ROI Y VIABILIDAD: Realiza una proyección financiera y técnica. Estima el TCO (Total Cost of Ownership), ahorros operativos en FTE (Full Time Equivalent), reducción de latencia y escalabilidad a largo plazo.
     4. RIESGOS TÉCNICOS Y MITIGACIÓN: Identifica riesgos críticos como Deuda Técnica latente, Cuellos de Botella en infraestructura, Dependencias de terceros y vulnerabilidades OWASP aplicables. Propón una estrategia de mitigación profesional para cada uno.
-    5. PREGUNTAS DE INGENIERÍA (DISCOVERY PROFUNDO): Genera 5-8 preguntas críticas que desafíen la viabilidad de la idea. Enfócate en:
-       - Casos de borde (Edge Cases) complejos y manejo de estados inconsistentes.
-       - Estrategias de integración con el Ecosistema Legacy y APIs de terceros.
-       - Modelos de persistencia (SQL vs NoSQL) y consistencia eventual vs fuerte.
-       - Requerimientos no funcionales (Latencia, Concurrencia, Observabilidad).
+    5. PREGUNTAS DE INGENIERÍA (DISCOVERY PROFUNDO): Genera 5-8 preguntas críticas que desafíen la viabilidad de la idea. Si ya hay respuestas, genera nuevas preguntas sobre los detalles técnicos revelados.
     6. SUGERENCIAS DE MEJORA Y ARQUITECTURA: Proporciona 5 sugerencias de "Arquitectura Premium" que eleven el valor de la idea original. Ejemplos: Implementación de Event-Sourcing, patrones de Circuit Breaker para resiliencia, IA Augmentation (RAG/Agentes), u optimizaciones de Backend-for-Frontend (BFF).
-
+    
     REGLA DE ORO: Produce un análisis que un CTO o Arquitecto de Software consideraría valioso. La profundidad debe ser tal que sirva como base para un documento de diseño técnico (TDD).
-
+    
+    CRITICAL: Si el texto contiene el marcador "--- DETALLES REFINADOS (IA) ---", considera toda la información debajo de ese marcador como HECHOS VALIDADOS por el usuario. Úsalos para eliminar ambigüedades y NO vuelvas a preguntar sobre esos mismos puntos en la sección de discovery.
+    
     RESPONDE ÚNICAMENTE EN JSON CON ESTA ESTRUCTURA:
     {{
         "goal": "Objetivo SMART/IEEE 830 detallado...",
@@ -379,7 +389,8 @@ def analyze_vibe_logic(text):
         "roi": "Análisis de Viabilidad, TCO y ROI proyectado...",
         "risks": [{{ "risk": "Nombre del riesgo técnico", "mitigation": "Estrategia de mitigación detallada..." }}],
         "questions": ["Pregunta de Ingeniería Crítica 1", "...", "Pregunta de Ingeniería Crítica 8"],
-        "suggestions": ["Sugerencia de Mejora Arquitectónica 1", "...", "Sugerencia de Valor Estratégico 5"]
+        "suggestions": ["Sugerencia de Mejora Arquitectónica 1", "...", "Sugerencia de Valor Estratégico 5"],
+        "is_refined": true/false (dependiendo de si se usaron respuestas)
     }}
     """
     
@@ -401,6 +412,7 @@ def analyze_vibe_logic(text):
         if "risks" not in result: result["risks"] = []
         if "criticality" not in result: result["criticality"] = "Media"
         if "roi" not in result: result["roi"] = "N/A"
+        result["is_refined"] = True if answers else False
         
         return result
     except Exception as e:
@@ -412,6 +424,7 @@ def analyze_vibe_logic(text):
             "questions": [],
             "suggestions": [],
             "risks": [],
+            "is_refined": False,
             "error": str(e)
         }
 
