@@ -3,10 +3,7 @@
  */
 import { state, elements } from './state.js';
 import { showToast } from './ui.js';
-
-const SUPABASE_URL = APP_CONFIG.SUPABASE.URL;
-const SUPABASE_KEY = APP_CONFIG.SUPABASE.ANON_KEY;
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { sbClient } from './supabase.js';
 
 const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'md', 'csv'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB

@@ -4,9 +4,7 @@
 import { state, elements } from './state.js';
 import { showToast, toggleModal } from './ui.js';
 
-const SUPABASE_URL = APP_CONFIG.SUPABASE.URL;
-const SUPABASE_KEY = APP_CONFIG.SUPABASE.ANON_KEY;
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { sbClient } from './supabase.js';
 
 export function generateRequestId() {
     const sectorId = elements.selectSector.value;

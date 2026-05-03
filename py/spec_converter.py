@@ -338,69 +338,55 @@ def delete_glossary_term(term_id):
         result = supabase.table("glosario").update({"activo": False}).eq("id", term_id).execute()
         return {"status": "success", "data": result.data}
     except Exception as e:
-        print(f"[ERROR] Error al eliminar término: {e}")
+        print(f"[ERROR] Error al desactivar término: {e}")
         return {"status": "error", "error": str(e)}
 
 def analyze_vibe_logic(text):
     """
     Analiza una idea en lenguaje natural (Vibe Coding) para extraer:
-    1. Objetivo refinado
-    2. Criticidad sugerida
-    3. ROI estimado
-    4. Términos técnicos detectados del glosario o nuevos
+    1. Objetivo refinado (IEEE 830 / SMART)
+    2. Criticidad técnica justificada
+    3. Análisis de Viabilidad y ROI
+    4. Riesgos Técnicos y Mitigación
+    5. Preguntas de Ingeniería profunda (Discovery)
+    6. Sugerencias de Mejora y Arquitectura (Valor Agregado)
     """
-    # Obtener glosario para contexto de detección
-    glossary = get_glossary()
-    glossary_list = "\n".join([f"- {t['termino']}: {t['definicion']}" for t in glossary]) if glossary else "Glosario vacío."
-
     prompt = f"""
-    Actúa como un Arquitecto de Soluciones y Analista de Triage Senior de GT Data Consulting.
-    Tu misión es realizar un análisis semántico profundo ("Vibe Coding Analysis") de la siguiente idea de requerimiento:
+    Actúa como un Arquitecto de Soluciones Senior y Consultor de Estrategia Digital de GT Data Consulting.
+    Tu misión es realizar un análisis semántico exhaustivo, de alto nivel técnico y con visión de negocio del siguiente requerimiento:
     
     TEXTO DEL REQUERIMIENTO:
     "{text}"
     
-    CONTEXTO DEL GLOSARIO CORPORATIVO ACTUAL:
-    {glossary_list}
-    
-    INSTRUCCIONES DE PROCESAMIENTO:
-    1. OBJETIVO: Redacta un objetivo técnico formal, específico y medible en español.
-    2. CRITICIDAD: Clasifica en [Baja, Media, Alta, Crítica] justificando internamente por impacto en el negocio.
-    3. ROI: Estima el retorno de inversión (ej. ahorro de tiempo, reducción de errores, impacto financiero).
-    4. PREGUNTAS (NUEVO): Genera 3 preguntas clave de clarificación que el usuario deba responder para profundizar en el requerimiento.
-    5. SUGERENCIAS (NUEVO): Propone 3 mejoras o consideraciones técnicas para fortalecer la idea original.
-    6. TÉRMINOS TÉCNICOS (CRÍTICO): 
-       - Identifica palabras clave que ya estén en el GLOSARIO.
-       - Detecta conceptos técnicos complejos, acrónimos o entidades de datos que NO estén en el glosario pero sean esenciales.
-       - Para CADA término detectado, proporciona una definición técnica rigurosa y asígnale una capa:
-         * 'GOBIERNO': Políticas, normas, cumplimiento.
-         * 'TECNICO': Arquitectura, código, infraestructura, datos.
-         * 'OBTENIDO': Datos de fuentes externas o terceros.
+    INSTRUCCIONES DE PROCESAMIENTO (MÁXIMA PROFUNDIDAD TÉCNICA):
+    1. OBJETIVO (SRS IEEE 830): Redacta un objetivo técnico formal siguiendo la metodología SMART y alineado con la sección 3.1 de la norma IEEE 830. Debe ser preciso, verificable y orientado a la implementación.
+    2. CRITICIDAD Y GOBERNANZA: Clasifica en [Baja, Media, Alta, Crítica]. Justifica basándote en la Matriz de Riesgos Corporativa: Impacto en Seguridad, Privacidad de Datos (GDPR/Compliance), Continuidad Operativa y Complejidad Técnica.
+    3. ANÁLISIS DE ROI Y VIABILIDAD: Realiza una proyección financiera y técnica. Estima el TCO (Total Cost of Ownership), ahorros operativos en FTE (Full Time Equivalent), reducción de latencia y escalabilidad a largo plazo.
+    4. RIESGOS TÉCNICOS Y MITIGACIÓN: Identifica riesgos críticos como Deuda Técnica latente, Cuellos de Botella en infraestructura, Dependencias de terceros y vulnerabilidades OWASP aplicables. Propón una estrategia de mitigación profesional para cada uno.
+    5. PREGUNTAS DE INGENIERÍA (DISCOVERY PROFUNDO): Genera 5-8 preguntas críticas que desafíen la viabilidad de la idea. Enfócate en:
+       - Casos de borde (Edge Cases) complejos y manejo de estados inconsistentes.
+       - Estrategias de integración con el Ecosistema Legacy y APIs de terceros.
+       - Modelos de persistencia (SQL vs NoSQL) y consistencia eventual vs fuerte.
+       - Requerimientos no funcionales (Latencia, Concurrencia, Observabilidad).
+    6. SUGERENCIAS DE MEJORA Y ARQUITECTURA: Proporciona 5 sugerencias de "Arquitectura Premium" que eleven el valor de la idea original. Ejemplos: Implementación de Event-Sourcing, patrones de Circuit Breaker para resiliencia, IA Augmentation (RAG/Agentes), u optimizaciones de Backend-for-Frontend (BFF).
 
-    REGLA DE ORO: Si no encuentras términos, ESFUÉRZATE en identificar al menos conceptos base de la arquitectura mencionada (ej. "API", "Base de Datos", "Frontend", etc.).
+    REGLA DE ORO: Produce un análisis que un CTO o Arquitecto de Software consideraría valioso. La profundidad debe ser tal que sirva como base para un documento de diseño técnico (TDD).
 
     RESPONDE ÚNICAMENTE EN JSON CON ESTA ESTRUCTURA:
     {{
-        "goal": "Objetivo formal...",
-        "criticality": "Alta",
-        "roi": "Ahorro proyectado de...",
-        "questions": ["Pregunta 1", "Pregunta 2", "Pregunta 3"],
-        "suggestions": ["Sugerencia 1", "Sugerencia 2", "Sugerencia 3"],
-        "terms": [
-            {{ 
-                "term": "Nombre del Término", 
-                "layer": "TECNICO", 
-                "definition": "Definición técnica precisa",
-                "origin": "IA_SUGGESTION"
-            }}
-        ]
+        "goal": "Objetivo SMART/IEEE 830 detallado...",
+        "criticality": "Clasificación con justificación técnica exhaustiva...",
+        "roi": "Análisis de Viabilidad, TCO y ROI proyectado...",
+        "risks": [{{ "risk": "Nombre del riesgo técnico", "mitigation": "Estrategia de mitigación detallada..." }}],
+        "questions": ["Pregunta de Ingeniería Crítica 1", "...", "Pregunta de Ingeniería Crítica 8"],
+        "suggestions": ["Sugerencia de Mejora Arquitectónica 1", "...", "Sugerencia de Valor Estratégico 5"]
     }}
     """
     
     try:
         chat_completion = groq_client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "Eres un experto en gobierno de datos y arquitectura. Solo respondes JSON en español."},
+                {"role": "system", "content": "Eres un Arquitecto de Soluciones experto en Triage Técnico de GT Data Consulting. Solo respondes JSON en español de alta calidad técnica y máxima profundidad."},
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.3-70b-versatile",
@@ -408,22 +394,27 @@ def analyze_vibe_logic(text):
         )
         result = json.loads(chat_completion.choices[0].message.content)
         
-        # Validación mínima de estructura
-        if "terms" not in result: result["terms"] = []
+        # Valores por defecto para evitar errores en el frontend
         if "goal" not in result: result["goal"] = "Objetivo no determinado"
         if "questions" not in result: result["questions"] = []
         if "suggestions" not in result: result["suggestions"] = []
+        if "risks" not in result: result["risks"] = []
+        if "criticality" not in result: result["criticality"] = "Media"
+        if "roi" not in result: result["roi"] = "N/A"
         
         return result
     except Exception as e:
         print(f"[ERROR] analyze_vibe_logic: {e}")
         return {
-            "goal": "Error en el análisis",
-            "criticality": "Media",
-            "roi": "N/A",
-            "terms": [],
+            "goal": "Error en el análisis técnico",
+            "criticality": "No determinada",
+            "roi": "Error",
+            "questions": [],
+            "suggestions": [],
+            "risks": [],
             "error": str(e)
         }
+
 
 if __name__ == "__main__":
     sample_code = """

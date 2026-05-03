@@ -16,8 +16,7 @@ export const state = {
     },
     sectors: [],
     statuses: [],
-    approvers: [],
-    dictionary: []
+    approvers: []
 };
 
 export const elements = {
@@ -38,11 +37,7 @@ export const elements = {
     chatMessages: document.getElementById('chat-messages'),
     chatInput: document.getElementById('chat-input'),
     btnSendChat: document.getElementById('btn-send-chat'),
-    dictionaryList: document.getElementById('dictionary-list'),
-    btnAddTerm: document.getElementById('btn-add-term'),
-    modalTerm: document.getElementById('modal-term'),
-    termForm: document.getElementById('term-form'),
-    btnCancelTerm: document.getElementById('btn-cancel-term'),
+    btnSendChat: document.getElementById('btn-send-chat'),
     auditLog: document.getElementById('audit-log'),
     auditContainer: document.getElementById('audit-log-container'),
     btnLogout: document.getElementById('btn-logout'),

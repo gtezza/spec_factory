@@ -8,13 +8,9 @@ import { showToast, populateSelect, toggleModal } from './modules/ui.js';
 import { checkSession, login, logout } from './modules/auth.js';
 import { generateRequestId, saveRequest, runQualityAudit } from './modules/triage.js';
 import { sendChatMessage } from './modules/ia.js';
-import { handleNewTermSubmit } from './modules/glossary.js';
 import { apiFetch, endpoints } from './modules/api.js';
 import { initAttachmentEvents } from './modules/attachments.js';
-
-const SUPABASE_URL = APP_CONFIG.SUPABASE.URL;
-const SUPABASE_KEY = APP_CONFIG.SUPABASE.ANON_KEY;
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { sbClient } from './modules/supabase.js';
 
 async function loadInitialData() {
     try {
@@ -72,11 +68,6 @@ function setupEventListeners() {
     elements.chatInput?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendChatMessage();
     });
-
-    // Glosario
-    elements.btnAddTerm?.addEventListener('click', () => toggleModal(elements.modalTerm, true));
-    elements.btnCancelTerm?.addEventListener('click', () => toggleModal(elements.modalTerm, false));
-    elements.termForm?.addEventListener('submit', handleNewTermSubmit);
 
     // Adjuntos
     initAttachmentEvents();

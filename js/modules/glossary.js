@@ -3,11 +3,7 @@
  */
 import { state, elements } from './state.js';
 import { showToast, toggleModal } from './ui.js';
-
-// Cliente Supabase inyectado desde el core o globalmente
-const SUPABASE_URL = APP_CONFIG.SUPABASE.URL;
-const SUPABASE_KEY = APP_CONFIG.SUPABASE.ANON_KEY;
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { sbClient } from './supabase.js';
 
 export async function updateDictionary(terms) {
     for (const term of terms) {

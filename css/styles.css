@@ -3,19 +3,21 @@
 :root {
     --primary: #0052CC; /* Jira Blue */
     --primary-hover: #0747A6;
-    --bg-body: #F4F5F7;
-    --bg-surface: #FFFFFF;
-    --border-color: #DFE1E6;
+    --bg-body: #F0F2F5;
+    --bg-surface: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(223, 225, 230, 0.5);
     --text-main: #172B4D;
     --text-muted: #6B778C;
     --success: #36B37E;
     --warning: #FFAB00;
     --danger: #FF5630;
-    --sidebar-bg: #FAFBFC;
+    --sidebar-bg: #FFFFFF;
     --sidebar-item-active: #EBECF0;
     --sidebar-text: #42526E;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1);
-    --transition: all 0.2s ease;
+    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
 }
 
 * {
@@ -26,7 +28,7 @@
 }
 
 body {
-    background-color: var(--bg-body);
+    background: radial-gradient(circle at top right, #e0e7ff, #f0f2f5 50%);
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
@@ -123,7 +125,7 @@ body {
 /* Grid Layout */
 .triage-grid {
     display: grid;
-    grid-template-columns: 350px 1fr 320px;
+    grid-template-columns: 350px 1fr 480px; /* Columna IA más ancha para análisis profundo */
     gap: 24px;
     max-width: 100%;
     margin: 0 auto;
@@ -133,14 +135,14 @@ body {
 /* Responsividad */
 @media (max-width: 1400px) {
     .triage-grid {
-        grid-template-columns: 300px 1fr 300px;
+        grid-template-columns: 300px 1fr 380px;
         gap: 16px;
     }
 }
 
 @media (max-width: 1200px) {
     .triage-grid {
-        grid-template-columns: 1fr 300px;
+        grid-template-columns: 1fr 350px;
     }
     .triage-grid > div:nth-child(1) {
         grid-column: 1 / -1;
@@ -185,11 +187,19 @@ body {
 
 /* Cards */
 .card {
-    background-color: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
+    background: var(--bg-surface);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
     box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
 }
 
 .card-title {
@@ -246,73 +256,57 @@ body {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: 850px; /* Chat extendido para lectura técnica profunda */
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background-color: #F4F5F7;
+    gap: 16px;
+    background-color: #F8F9FA;
 }
 
 .message {
-    max-width: 85%;
-    padding: 10px 14px;
+    max-width: 90%;
+    padding: 12px 16px;
     border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .message-ai {
     align-self: flex-start;
-    background-color: white;
+    background: white;
     border: 1px solid var(--border-color);
     color: var(--text-main);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-bottom-left-radius: 2px;
 }
 
 .message-user {
     align-self: flex-end;
     background-color: var(--primary);
     color: white;
+    border-bottom-right-radius: 2px;
 }
 
 .chat-input-area {
     display: flex;
-    padding: 10px;
+    padding: 15px;
     background-color: white;
     border-top: 1px solid var(--border-color);
-    gap: 10px;
+    gap: 12px;
 }
-
-/* Dictionary Section */
-.dictionary-item {
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 13px;
-}
-
-.dictionary-item:last-child {
-    border-bottom: none;
-}
-
-.layer-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 3px;
-    text-transform: uppercase;
-}
-
-.layer-gobierno { background-color: #EAE6FF; color: #403294; }
-.layer-tecnico { background-color: #DEEBFF; color: #0747A6; }
-.layer-obtenido { background-color: #E3FCEF; color: #006644; }
 
 /* Modal */
 .modal-overlay {
@@ -427,13 +421,29 @@ body {
     to { opacity: 0; }
 }
 
-/* Ajustes Tablet y Móvil */
-@media (max-width: 1024px) {
+/* Ajustes Tablet y Pantallas Medianas */
+@media (max-width: 1100px) {
     .triage-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 20px;
     }
     .triage-grid > div:last-child {
         grid-column: span 2;
+    }
+}
+
+@media (max-width: 850px) {
+    .triage-grid {
+        grid-template-columns: 1fr;
+    }
+    .triage-grid > div:last-child {
+        grid-column: span 1;
+    }
+    .sidebar {
+        width: 70px;
+    }
+    .sidebar span, .logo span {
+        display: none;
     }
 }
 
