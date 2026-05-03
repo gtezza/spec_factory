@@ -30,6 +30,8 @@ export async function updateDictionary(terms) {
 }
 
 export function renderDictionary() {
+    if (!elements.dictionaryList) return;
+    
     if (state.dictionary.length === 0) {
         elements.dictionaryList.innerHTML = '<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Ningún término técnico detectado aún.</p>';
         return;

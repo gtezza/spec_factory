@@ -138,13 +138,14 @@
                     <!-- Column 3: Inteligencia y Gobernanza -->
                     <div style="display: flex; flex-direction: column; gap: 24px;">
                         <!-- IA Chat Refinement -->
-                        <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+                        <!-- IA Chat Refinement -->
+                        <div class="card" style="flex: 1; display: flex; flex-direction: column; min-height: 500px;">
                             <div class="card-title">
                                 <i class="ri-robot-2-line"></i>
                                 Análisis IA Triage
                             </div>
-                            <div class="chat-container">
-                                <div class="chat-messages" id="chat-messages">
+                            <div class="chat-container" style="flex: 1; display: flex; flex-direction: column;">
+                                <div class="chat-messages" id="chat-messages" style="flex: 1; overflow-y: auto;">
                                     <div class="message message-ai">
                                         Hola. Soy tu Analista de Triage. Describe tu idea en la columna central y la analizaré según las políticas de GT Data Consulting.
                                     </div>
@@ -156,22 +157,6 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Dictionary Module -->
-                        <div class="card">
-                            <div class="card-title">
-                                <i class="ri-book-mark-line"></i>
-                                Diccionario de Términos
-                            </div>
-                            <div id="dictionary-list" style="max-height: 300px; overflow-y: auto;">
-                                <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">
-                                    Ningún término técnico detectado aún.
-                                </p>
-                            </div>
-                            <button class="btn btn-ghost" id="btn-add-term" style="width: 100%; margin-top: 10px; font-size: 12px;">
-                                <i class="ri-add-line"></i> Agregar Término Manualmente
-                            </button>
                         </div>
 
                         <!-- Quality Audit -->

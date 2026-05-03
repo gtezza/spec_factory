@@ -367,7 +367,9 @@ def analyze_vibe_logic(text):
     1. OBJETIVO: Redacta un objetivo técnico formal, específico y medible en español.
     2. CRITICIDAD: Clasifica en [Baja, Media, Alta, Crítica] justificando internamente por impacto en el negocio.
     3. ROI: Estima el retorno de inversión (ej. ahorro de tiempo, reducción de errores, impacto financiero).
-    4. TÉRMINOS TÉCNICOS (CRÍTICO): 
+    4. PREGUNTAS (NUEVO): Genera 3 preguntas clave de clarificación que el usuario deba responder para profundizar en el requerimiento.
+    5. SUGERENCIAS (NUEVO): Propone 3 mejoras o consideraciones técnicas para fortalecer la idea original.
+    6. TÉRMINOS TÉCNICOS (CRÍTICO): 
        - Identifica palabras clave que ya estén en el GLOSARIO.
        - Detecta conceptos técnicos complejos, acrónimos o entidades de datos que NO estén en el glosario pero sean esenciales.
        - Para CADA término detectado, proporciona una definición técnica rigurosa y asígnale una capa:
@@ -382,6 +384,8 @@ def analyze_vibe_logic(text):
         "goal": "Objetivo formal...",
         "criticality": "Alta",
         "roi": "Ahorro proyectado de...",
+        "questions": ["Pregunta 1", "Pregunta 2", "Pregunta 3"],
+        "suggestions": ["Sugerencia 1", "Sugerencia 2", "Sugerencia 3"],
         "terms": [
             {{ 
                 "term": "Nombre del Término", 
@@ -407,6 +411,8 @@ def analyze_vibe_logic(text):
         # Validación mínima de estructura
         if "terms" not in result: result["terms"] = []
         if "goal" not in result: result["goal"] = "Objetivo no determinado"
+        if "questions" not in result: result["questions"] = []
+        if "suggestions" not in result: result["suggestions"] = []
         
         return result
     except Exception as e:

@@ -26,13 +26,36 @@ export async function sendChatMessage() {
         });
         
         const lastMsg = elements.chatMessages.lastElementChild;
-        lastMsg.innerHTML = `He analizado tu intención técnica con Groq:
-            <ul style="margin-top: 8px; padding-left: 15px;">
+        let htmlResponse = `He analizado tu intención técnica con Groq:
+            <ul style="margin-top: 8px; padding-left: 15px; font-size: 13px;">
                 <li><strong>Objetivo:</strong> ${result.goal}</li>
                 <li><strong>Criticidad Sugerida:</strong> ${result.criticality}</li>
                 <li><strong>ROI:</strong> ${result.roi}</li>
-            </ul>
-            He detectado ${result.terms.length} términos de gobernanza. ¿Deseas aplicarlos al requerimiento?`;
+            </ul>`;
+
+        if (result.questions && result.questions.length > 0) {
+            htmlResponse += `
+            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <strong style="color: var(--primary);"><i class="ri-question-line"></i> Preguntas de Clarificación:</strong>
+                <ul style="margin-top: 5px; padding-left: 15px; font-size: 12px; color: #ced4da;">
+                    ${result.questions.map(q => `<li>${q}</li>`).join('')}
+                </ul>
+            </div>`;
+        }
+
+        if (result.suggestions && result.suggestions.length > 0) {
+            htmlResponse += `
+            <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <strong style="color: #2ecc71;"><i class="ri-lightbulb-line"></i> Sugerencias de Mejora:</strong>
+                <ul style="margin-top: 5px; padding-left: 15px; font-size: 12px; color: #ced4da;">
+                    ${result.suggestions.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+            </div>`;
+        }
+
+        htmlResponse += `<p style="margin-top: 15px; font-size: 11px;">He detectado ${result.terms.length} términos de gobernanza. ¿Deseas aplicarlos?</p>`;
+        
+        lastMsg.innerHTML = htmlResponse;
         
         aiTyping = false;
         
@@ -40,6 +63,7 @@ export async function sendChatMessage() {
         if (!elements.inputRoi.value) elements.inputRoi.value = result.roi;
         elements.selectCriticality.value = result.criticality;
         
+        // Actualizar términos en segundo plano (aunque el widget no sea visible)
         await updateDictionary(result.terms);
         runQualityAudit();
         
