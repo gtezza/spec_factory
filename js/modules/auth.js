@@ -70,6 +70,11 @@ function updateUserUI(isNewLogin = false) {
             elements.btnSaveRequest.style.opacity = '0.5';
             elements.btnSaveRequest.title = 'No tienes permisos de creación';
         }
+        if (elements.btnSubmitRequest) {
+            elements.btnSubmitRequest.disabled = true;
+            elements.btnSubmitRequest.style.opacity = '0.5';
+            elements.btnSubmitRequest.title = 'No tienes permisos de creación';
+        }
         if (elements.uploadArea) {
             elements.uploadArea.style.pointerEvents = 'none';
             elements.uploadArea.style.opacity = '0.5';
@@ -82,6 +87,11 @@ function updateUserUI(isNewLogin = false) {
             elements.btnSaveRequest.disabled = false;
             elements.btnSaveRequest.style.opacity = '1';
             elements.btnSaveRequest.title = 'Guardar cambios en la base de datos';
+        }
+        if (elements.btnSubmitRequest) {
+            elements.btnSubmitRequest.disabled = false;
+            elements.btnSubmitRequest.style.opacity = '1';
+            elements.btnSubmitRequest.title = 'Enviar solicitud a aprobar por administración';
         }
         if (elements.uploadArea) {
             elements.uploadArea.style.pointerEvents = 'auto';

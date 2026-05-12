@@ -5,6 +5,7 @@
 import { state, elements } from './state.js';
 import { showToast } from './ui.js';
 import { apiFetch, endpoints } from './api.js';
+import { sbClient } from './supabase.js';
 
 // Variables de estado local del módulo de administración
 let adminRequests = [];
@@ -48,6 +49,9 @@ export function initAdmin() {
 
     // Configurar exportación de PDF de la SDD generada
     elements.btnExportPdf?.addEventListener('click', handleExportSddPdf);
+
+    // Configurar sincronización de propuesta de triage offline
+    elements.btnSyncOfflineRequest?.addEventListener('click', handleSyncOfflineRequest);
 }
 
 /**
@@ -70,6 +74,28 @@ export async function loadAdminTriage() {
         const response = await apiFetch(endpoints.triage);
         if (response && response.status === 'success') {
             adminRequests = response.data || [];
+
+            // Integración de borradores locales / offline
+            try {
+                const localRequests = JSON.parse(localStorage.getItem('sf_offline_requests') || '[]');
+                localRequests.forEach((req, index) => {
+                    req.offline = true;
+                    if (!req.id) {
+                        req.id = `offline-${req.request_id || index}-${Date.now()}`;
+                    }
+                    if (!req.sectors) {
+                        const sectorObj = state.sectors?.find(s => s.id === req.sector_id);
+                        req.sectors = sectorObj || { name: 'General' };
+                    }
+                    if (!req.statuses) {
+                        req.statuses = { name: 'BORRADOR' };
+                    }
+                });
+                adminRequests = [...localRequests, ...adminRequests];
+            } catch (storageError) {
+                console.error('Error al procesar solicitudes offline en administración:', storageError);
+            }
+
             renderRequestsList();
         } else {
             throw new Error('No se pudo obtener la respuesta correcta de triage');
@@ -122,10 +148,10 @@ function renderRequestsList() {
         item.className = `admin-request-item ${isSelected ? 'active' : ''}`;
 
         // ID compacto (ej: REQ-A1B2)
-        const compactId = `REQ-${(req.id || '0000').slice(0, 4).toUpperCase()}`;
+        const compactId = req.offline ? req.request_id : `REQ-${(req.id || '0000').slice(0, 4).toUpperCase()}`;
         const sectorName = req.sectors?.name || 'General';
         const dateStr = req.created_at ? new Date(req.created_at).toLocaleDateString() : 'N/A';
-        const statusName = req.statuses?.name || 'BORRADOR';
+        const statusName = req.offline ? 'LOCAL / OFFLINE' : (req.statuses?.name || 'BORRADOR');
 
         // Estilos para badge de criticidad y estado
         let critBadgeClass = 'badge-secondary';
@@ -136,7 +162,11 @@ function renderRequestsList() {
         }
 
         let statusBadgeClass = 'badge-secondary';
-        if (statusName === 'APROBADO' || statusName === 'APROBADA') {
+        let customStatusStyle = '';
+        if (req.offline) {
+            statusBadgeClass = 'badge-warning';
+            customStatusStyle = 'style="background: #f97316; color: #fff; font-weight: 700; font-size: 10px;"';
+        } else if (statusName === 'APROBADO' || statusName === 'APROBADA') {
             statusBadgeClass = 'badge-success';
         } else if (statusName === 'PENDIENTE APROBACION' || statusName === 'PENDIENTE') {
             statusBadgeClass = 'badge-warning';
@@ -147,7 +177,7 @@ function renderRequestsList() {
         item.innerHTML = `
             <div class="request-item-header">
                 <span class="request-item-id">${compactId}</span>
-                <span class="badge ${statusBadgeClass}">${statusName}</span>
+                <span class="badge ${statusBadgeClass}" ${customStatusStyle}>${statusName}</span>
             </div>
             <h4 class="request-item-title">${req.idea || 'Idea de Proyecto'}</h4>
             <div class="request-item-footer">
@@ -182,7 +212,7 @@ async function loadRequestDetail(request) {
     elements.adminDetailActive.style.display = 'flex';
 
     // Rellenar metadatos principales de cabecera
-    const compactId = `REQ-${(request.id || '0000').slice(0, 5).toUpperCase()}`;
+    const compactId = request.offline ? request.request_id : `REQ-${(request.id || '0000').slice(0, 5).toUpperCase()}`;
     if (elements.detailRequestId) elements.detailRequestId.textContent = compactId;
     if (elements.detailTitle) elements.detailTitle.textContent = request.idea || 'Idea sin título';
     
@@ -195,13 +225,27 @@ async function loadRequestDetail(request) {
         elements.detailBadgeCriticality.className = `badge ${request.criticality === 'Alta' || request.criticality === 'Crítica' ? 'badge-danger' : 'badge-warning'}`;
     }
 
-    const statusName = request.statuses?.name || 'PENDIENTE';
+    const statusName = request.offline ? 'LOCAL / OFFLINE' : (request.statuses?.name || 'PENDIENTE');
     if (elements.detailBadgeStatus) {
         elements.detailBadgeStatus.textContent = statusName;
         let badgeClass = 'badge-warning';
-        if (statusName === 'APROBADO' || statusName === 'APROBADA') badgeClass = 'badge-success';
-        else if (statusName === 'RECHAZADO') badgeClass = 'badge-danger';
+        if (request.offline) {
+            badgeClass = 'badge-warning';
+        } else if (statusName === 'APROBADO' || statusName === 'APROBADA') {
+            badgeClass = 'badge-success';
+        } else if (statusName === 'RECHAZADO') {
+            badgeClass = 'badge-danger';
+        }
         elements.detailBadgeStatus.className = `badge ${badgeClass}`;
+        if (request.offline) {
+            elements.detailBadgeStatus.style.background = '#f97316';
+            elements.detailBadgeStatus.style.color = '#fff';
+            elements.detailBadgeStatus.style.fontWeight = '700';
+        } else {
+            elements.detailBadgeStatus.style.background = '';
+            elements.detailBadgeStatus.style.color = '';
+            elements.detailBadgeStatus.style.fontWeight = '';
+        }
     }
 
     if (elements.detailCreatorName) {
@@ -222,9 +266,11 @@ async function loadRequestDetail(request) {
 
     // Gestionar visualización del Visor de SDD e Inferencia
     const approvalCard = document.querySelector('.approval-action-card');
+    
     if (statusName === 'APROBADO' || statusName === 'APROBADA') {
-        // Ocultar caja de resolución de triage
+        // Ocultar caja de resolución de triage y sincronización offline
         if (approvalCard) approvalCard.style.display = 'none';
+        if (elements.syncOfflineBox) elements.syncOfflineBox.style.display = 'none';
         
         // Cargar especificación agéntica asociada
         const specId = request.metadata?.specification_id;
@@ -234,8 +280,14 @@ async function loadRequestDetail(request) {
             if (elements.sddViewerContainer) elements.sddViewerContainer.style.display = 'none';
         }
     } else {
-        // Mostrar caja de resolución de triage
-        if (approvalCard) approvalCard.style.display = 'block';
+        // Mostrar u ocultar controles según el origen local u online
+        if (request.offline) {
+            if (approvalCard) approvalCard.style.display = 'none';
+            if (elements.syncOfflineBox) elements.syncOfflineBox.style.display = 'block';
+        } else {
+            if (approvalCard) approvalCard.style.display = 'block';
+            if (elements.syncOfflineBox) elements.syncOfflineBox.style.display = 'none';
+        }
         if (elements.sddViewerContainer) elements.sddViewerContainer.style.display = 'none';
     }
 }

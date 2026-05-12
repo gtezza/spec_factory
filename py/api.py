@@ -261,7 +261,7 @@ def get_approvers_list():
     try:
         result = supabase.table("usuarios")\
             .select("id, full_name")\
-            .in_("role", ["administrador", "aprovador", "aprobador"])\
+            .in_("role", ["admin", "Admin", "administrador", "aprovador", "aprobador"])\
             .order("full_name")\
             .execute()
         return jsonify({"status": "success", "data": result.data}), 200

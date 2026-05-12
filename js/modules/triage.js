@@ -36,11 +36,14 @@ export function runQualityAudit() {
     }
 }
 
-export async function saveRequest() {
+export async function saveRequest(statusName = 'BORRADOR') {
+    const isSubmit = statusName === 'A APROBAR';
+    const statusObj = state.statuses.find(s => s.name === statusName);
+    
     const req = {
         request_id: elements.currentRequestId.innerText,
         sector_id: elements.selectSector.value,
-        status_id: state.statuses.find(s => s.name === 'BORRADOR')?.id,
+        status_id: statusObj?.id,
         criticality: elements.selectCriticality.value,
         objective: elements.textObjective.value,
         benefits: elements.textBenefits.value,
@@ -64,14 +67,37 @@ export async function saveRequest() {
         return;
     }
 
-    elements.btnSaveRequest.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
-    elements.btnSaveRequest.disabled = true;
+    const targetBtn = isSubmit ? elements.btnSubmitRequest : elements.btnSaveRequest;
+    const originalText = isSubmit ? '<i class="ri-send-plane-fill"></i> Enviar a Aprobar' : '<i class="ri-save-3-line"></i> Guardar Borrador';
+    const loadingText = isSubmit ? '<i class="ri-loader-4-line ri-spin"></i> Enviando...' : '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
+
+    if (targetBtn) {
+        targetBtn.innerHTML = loadingText;
+        targetBtn.disabled = true;
+    }
 
     try {
         const { data, error } = await sbClient.from('triage_requests').insert([req]).select();
         if (error) throw error;
         
-        showToast(`Solicitud ${req.request_id} guardada con éxito en el servidor.`, 'success');
+        const successMessage = isSubmit 
+            ? `Solicitud ${req.request_id} enviada con éxito para la aprobación de la administración.`
+            : `Solicitud ${req.request_id} guardada con éxito como BORRADOR.`;
+            
+        showToast(successMessage, 'success');
+        
+        // Si fue enviado con éxito, podemos generar un nuevo ID de requerimiento para el siguiente
+        if (isSubmit) {
+            generateRequestId();
+            // Limpiar campos para la siguiente idea
+            if (elements.textObjective) elements.textObjective.value = '';
+            if (elements.textBenefits) elements.textBenefits.value = '';
+            if (elements.inputRoi) elements.inputRoi.value = '';
+            if (elements.textIdea) elements.textIdea.value = '';
+            if (elements.fileList) elements.fileList.innerHTML = '';
+            state.currentRequest.sample_files = [];
+            runQualityAudit();
+        }
     } catch (error) {
         console.warn('Fallo al guardar en base de datos central, guardando localmente...', error);
         try {
@@ -83,7 +109,9 @@ export async function saveRequest() {
             showToast('Error al guardar localmente: ' + storageError.message, 'error');
         }
     } finally {
-        elements.btnSaveRequest.innerHTML = '<i class="ri-save-3-line"></i> Guardar Borrador';
-        elements.btnSaveRequest.disabled = false;
+        if (targetBtn) {
+            targetBtn.innerHTML = originalText;
+            targetBtn.disabled = false;
+        }
     }
 }

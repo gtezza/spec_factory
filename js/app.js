@@ -49,6 +49,7 @@ async function loadInitialData() {
         console.warn('Error cargando estados de Supabase, utilizando fallback local:', error);
         state.statuses = [
             { id: '10101010-1010-1010-1010-101010101010', name: 'BORRADOR', color: '#94a3b8', is_initial: true },
+            { id: 'd07e6f25-b619-4f30-a83a-040ba4deeab4', name: 'A APROBAR', color: '#3b82f6', is_initial: false },
             { id: '20202020-2020-2020-2020-202020202020', name: 'EN ANALISIS', color: '#6366f1', is_initial: false },
             { id: '30303030-3030-3030-3030-303030303030', name: 'PENDIENTE APROBACION', color: '#f59e0b', is_initial: false },
             { id: '40404040-4040-4040-4040-404040404040', name: 'APROBADO', color: '#10b981', is_initial: false },
@@ -134,7 +135,8 @@ function setupEventListeners() {
 
     // Triage
     elements.selectSector?.addEventListener('change', generateRequestId);
-    elements.btnSaveRequest?.addEventListener('click', saveRequest);
+    elements.btnSaveRequest?.addEventListener('click', () => saveRequest('BORRADOR'));
+    elements.btnSubmitRequest?.addEventListener('click', () => saveRequest('A APROBAR'));
     
     [elements.textObjective, elements.textBenefits, elements.inputRoi, elements.textIdea].forEach(el => {
         el?.addEventListener('blur', runQualityAudit);

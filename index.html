@@ -11,6 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 </head>
 <body>
     <div class="app-layout">
@@ -107,9 +108,14 @@
                                 </div>
                                 <div id="file-list" class="file-list"></div>
                             </div>
-                            <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 20px;">
-                                <i class="ri-save-3-line"></i> Guardar Borrador
-                            </button>
+                            <div class="triage-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                <button class="btn btn-secondary" id="btn-save-request" style="width: 100%;">
+                                    <i class="ri-save-3-line"></i> Guardar Borrador
+                                </button>
+                                <button class="btn btn-primary" id="btn-submit-request" style="width: 100%;">
+                                    <i class="ri-send-plane-fill"></i> Enviar a Aprobar
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Column 2: Cuerpo del Requerimiento -->
@@ -336,6 +342,20 @@
                                             <i class="ri-checkbox-circle-line"></i> Ok / Aprobar (Crear SDD)
                                         </button>
                                     </div>
+                                </div>
+
+                                <!-- Caja de Sincronización Offline -->
+                                <div class="card" id="sync-offline-box" style="display: none; border-top: 5px solid #f97316; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);">
+                                    <div class="card-title" style="color: #f97316; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                        <i class="ri-wifi-off-line" style="font-size: 20px;"></i>
+                                        Sincronizar Propuesta de Triage Local
+                                    </div>
+                                    <p style="font-size: 13.5px; color: var(--dark-text-muted); line-height: 1.6; margin-top: 10px; margin-bottom: 20px;">
+                                        Esta solicitud de triage se guardó de forma segura en el almacenamiento local de tu navegador debido a un fallo de red o contingencia con el servidor central de Supabase. Para poder auditarla, asignarla o generar la especificación de requerimientos de software IEEE 830 mediante Inteligencia Artificial, es mandatorio sincronizar el borrador primero.
+                                    </p>
+                                    <button id="btn-sync-offline-request" class="btn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; width: 100%; padding: 14px; font-weight: 700; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);">
+                                        <i class="ri-cloud-upload-line"></i> Sincronizar Solicitud con Servidor Central
+                                    </button>
                                 </div>
 
                                 <!-- Visor Interactivo Premium de SDD (IEEE 830 + IA Agéntica) -->

@@ -221,86 +221,88 @@ def json_to_markdown_srs(spec_json):
     return md
 
 def convert_triage_to_spec(triage_data, project_name="Nuevo Proyecto"):
-    """Convierte una propuesta de triage enriquecida en una especificación formal IEEE 830 + IA Agéntica."""
+    """Convierte una propuesta de triage enriquecida en una especificación formal IEEE 830 + Diseño de Solución Accionable."""
     
     # Obtener términos activos del glosario para dar contexto lingüístico
     active_terms = get_glossary()
     glossary_text = "\n".join([f"- {t['termino']}: {t['definicion']} (Categoría: {t['categoria']})" for t in active_terms]) if active_terms else "Ningún término disponible actualmente."
 
     prompt = f"""
-    Actúa como un Arquitecto de Soluciones Senior y Consultor de Estrategia Digital de GT Data Consulting.
-    Tu misión es redactar una Especificación formal de Requerimientos de Software (SRS) que sirva como base
-    para una arquitectura de Inteligencia Artificial Agéntica, siguiendo de manera rigurosa el estándar IEEE 830 adaptado.
+    Actúa como un Arquitecto de Soluciones Senior, Analista Funcional y Consultor de Estrategia Digital de GT Data Consulting.
+    Tu misión es redactar una Especificación formal de Requerimientos de Software (SRS) y Diseño de Solución basada EXACTAMENTE en la idea y necesidad proporcionada.
+    DEBES evitar usar texto de relleno o descripciones genéricas de la norma IEEE 830. Todo el contenido generado debe aplicarse de manera concreta y directa al caso de uso descrito. 
+    Dime CON CLARIDAD QUÉ HAY QUE HACER, paso a paso, funciones, estructuras de datos, etc.
     
-    DATOS DEL TRIAGE DE ORIGEN (HECHOS VALIDADOS):
-    - Título/Idea: {triage_data.get('idea', 'N/A')}
-    - Objetivo SMART Refinado: {triage_data.get('objective', 'N/A')}
-    - Beneficios Proyectados: {triage_data.get('benefits', 'N/A')}
-    - Análisis de Viabilidad y ROI: {triage_data.get('roi', 'N/A')}
-    - Criticidad: {triage_data.get('criticality', 'Media')}
+    DATOS DEL TRIAGE DE ORIGEN (LA NECESIDAD DEL USUARIO):
+    - Título/Proyecto: {project_name}
+    - Idea Original del Usuario: {triage_data.get('idea', 'N/A')}
+    - Objetivo SMART Refinado (si existe): {triage_data.get('objective', triage_data.get('goal', 'N/A'))}
+    - Riesgos detectados: {triage_data.get('risks', 'N/A')}
+    - Sugerencias previas: {triage_data.get('suggestions', 'N/A')}
     
     GLOSARIO CORPORATIVO DISPONIBLE:
     {glossary_text}
     
-    DISEÑO DEL ESQUEMA AGÉNTICO (MANDATORIO):
-    La SRS debe estructurar y definir cómo interactuarán los agentes, qué herramientas (skills) tendrán,
-    cómo se gestionará su memoria (a corto y largo plazo) y cómo se mitigarán las alucinaciones mediante guardrails.
+    INSTRUCCIONES CRÍTICAS:
+    1. Enfócate 100% en la Idea Original. Si el usuario pide procesar un Excel de "Muestra Supertienda" por país y predecir stock crítico, ENTONCES tu documento debe hablar de procesar ese Excel, filtrar por país, algoritmos de predicción para 6 meses y cálculo de criticidad.
+    2. Detalla QUÉ y CÓMO se va a construir. (Ej: Módulos necesarios, pipelines de datos, automatizaciones).
+    3. Si el caso de uso se beneficia de automatización agéntica (IA), inclúyelo en la sección de agentes. Si no, usa herramientas de automatización de datos convencionales.
+    4. NO expliques qué es una interfaz de hardware, directamente pon qué requiere la solución.
     
     RESPONDE ÚNICAMENTE EN FORMATO JSON con la estructura exacta detallada a continuación.
-    No añadas introducciones ni conclusiones, el resultado debe ser un JSON parseable directamente.
     
     {{
-        "title": "Especificación de Requerimientos de Software - [Insertar Título Premium]",
+        "title": "Especificación de Software: [Insertar Título Atractivo y Realista]",
         "introduction": {{
-            "purpose": "Propósito formal de esta SRS, detallando qué resolverá y el valor de negocio de la automatización agéntica.",
-            "system_scope": "Ámbito del sistema: Descripción del ecosistema agéntico, delimitando lo que los agentes harán autónomamente y dónde requerirán supervisión humana (Human-in-the-Loop).",
-            "definitions": ["Término 1: Definición (Si se usan términos del glosario, listarlos aquí. Si se crean nuevos, marcarlos con '(Nuevo)')"],
-            "references": ["Lista de estándares y documentación técnica relevante (ej. IEEE 830, OWASP, especificaciones de APIs, etc.)"],
-            "document_overview": "Visión general del resto del documento y cómo está organizado."
+            "purpose": "Propósito específico de la solución. Qué problema concreto del usuario resuelve.",
+            "system_scope": "Alcance del sistema. Qué va a hacer y qué NO va a hacer.",
+            "definitions": ["Términos clave relevantes para esta solución particular."],
+            "references": ["Estándares o librerías técnicas que recomiendas usar para este proyecto (ej. Pandas, Scikit-learn, OpenAI, etc.)"],
+            "document_overview": "Visión general de esta especificación."
         }},
         "general_description": {{
-            "product_perspective": "Perspectiva del producto en el ecosistema corporativo actual. ¿Cómo se conecta con bases de datos u otros sistemas?",
-            "product_functions": ["Función autónoma 1: Detalle de qué tarea resuelve sin intervención", "Función autónoma 2: ..."],
-            "user_characteristics": ["Rol 1 (Humano/Agente): Perfil y capacidades de interacción con la solución"],
-            "constraints": ["Limitaciones de infraestructura, de tokens del LLM, privacidad de datos o seguridad"],
-            "assumptions_dependencies": ["Suposiciones clave (ej. disponibilidad del modelo Groq, conectividad del backend, etc.)"],
-            "future_requirements": ["Visión de escalabilidad futura de la red de agentes (nuevos agentes o herramientas)"]
+            "product_perspective": "Contexto de la solución: ¿Es un script, una web app, una canalización en la nube, un proceso batch?",
+            "product_functions": ["Función principal 1 que se va a programar", "Función principal 2...", "Debe ser lo que el usuario pidió"],
+            "user_characteristics": ["Usuarios que consumirán esta solución y sus habilidades"],
+            "constraints": ["Limitaciones reales esperadas para este proyecto"],
+            "assumptions_dependencies": ["Requisitos previos (ej. Formato del Excel, acceso a APIs)"],
+            "future_requirements": ["Siguientes pasos sugeridos una vez completada esta fase"]
         }},
         "specific_requirements": {{
             "external_interfaces": {{
-                "user_interfaces": "Descripción de la UI esperada para interactuar con la IA y ver sus ejecuciones de manera fluida.",
-                "hardware_interfaces": "Interfaces con hardware o periféricos si aplica, o 'No aplica para este ecosistema de software' si es el caso.",
-                "software_interfaces": "Modelos de Lenguaje (ej. Llama 3.3, Cohere Embeddings) y APIs de integración.",
-                "communication_interfaces": "Protocolos de transferencia y seguridad requeridos (HTTPs, JSON-RPC, etc.)."
+                "user_interfaces": "Detalle de las pantallas o reportes generados (ej. 'Reporte en Excel separado por hoja' o 'Dashboard').",
+                "hardware_interfaces": "N/A o hardware específico requerido.",
+                "software_interfaces": "Librerías de software, conectores a BD, APIs externas requeridas.",
+                "communication_interfaces": "Mecanismos de integración o notificación (ej. Emails, SFTP, REST)."
             }},
             "agent_system_functions": {{
-                "agent_definitions": ["Agente 1 (Nombre): Rol asignado, meta de comportamiento y guardrails específicos"],
-                "skills_tools_matrix": ["Herramienta/Skill 1 (Nombre): Entrada requerida, salida, y descripción de la acción técnica"],
-                "orchestration_logic": "Explicación detallada de la lógica de orquestación (ej. secuencial, jerárquica o reactiva) y flujos autónomos de decisión.",
-                "memory_context_management": "Estrategia para gestionar la memoria de corto plazo (historial de chat de sesión) y largo plazo (vector embedding en base de datos)."
+                "agent_definitions": ["Agentes IA o Scripts de automatización: Rol asignado y meta (Ej. 'Script de Extracción', 'Agente de Pronóstico')."],
+                "skills_tools_matrix": ["Herramienta/Librería 1: Acción técnica que realizará (Ej. 'Pandas: Agrupación por país y suma')."],
+                "orchestration_logic": "Paso a paso lógico de la ejecución. (Ej. 1. Leer Excel, 2. Agrupar, 3. Predecir, 4. Exportar).",
+                "memory_context_management": "Dónde se guardarán los resultados temporales o modelos entrenados."
             }},
-            "performance_requirements": ["Métrica de rendimiento 1: Latencia máxima aceptable de inferencia en milisegundos", "Métrica de rendimiento 2: Tiempo de respuesta del skill"],
-            "design_constraints": ["Guardrails del sistema (ej. filtros de moderación, límites de tokens para control de costos, seguridad de prompts)"],
+            "performance_requirements": ["Métricas de rendimiento esperadas (ej. procesar 100k filas en menos de 1 min)."],
+            "design_constraints": ["Reglas de negocio o limitaciones tecnológicas."],
             "system_attributes": {{
-                "reliability_hallucinations": "Técnicas de manejo de alucinaciones (ej. auto-reflexión, validación estructurada de esquemas, encadenamiento de pensamientos).",
-                "availability": "Disponibilidad del sistema y resiliencia ante caídas de la API del LLM (fallback local).",
-                "security_rbac_audit": "Políticas de seguridad: Control de acceso basado en roles (RBAC) y auditoría de acciones de la IA.",
-                "maintainability": "Estrategia de versionado de prompts, monitorización de logs de agentes y trazabilidad."
+                "reliability_hallucinations": "Mecanismos para garantizar la precisión de los datos o de la predicción.",
+                "availability": "Esquema de disponibilidad requerido.",
+                "security_rbac_audit": "Quién puede ejecutar esto y cómo se audita.",
+                "maintainability": "Cómo mantener el código a futuro."
             }},
-            "other_requirements": ["Requerimiento de cumplimiento normativo (ej. GDPR o leyes locales de protección de datos) si aplica."]
+            "other_requirements": ["Otros detalles importantes."]
         }},
         "appendices": {{
-            "data_dictionary": ["Entidad 1: Nombre del campo, tipo de dato y descripción del objeto JSON de intercambio."],
-            "traceability_matrix": ["REQUISITO-001 (Nombre) mapea a USER STORY-001 (Como aprobador quiero...) para la creación posterior de Épicas de desarrollo."]
+            "data_dictionary": ["Estructura de datos clave esperada (Ej. 'País (str), Artículo (str), Cantidad Vendida (int), Proyección M+1 (int)')."],
+            "traceability_matrix": ["Mapeo de las ideas del usuario a las funcionalidades técnicas."]
         }}
     }}
     
-    Todo el contenido redactado debe estar completamente en ESPAÑOL, ser técnicamente impecable, riguroso y de alto valor estratégico para GT Data Consulting.
+    Todo el contenido redactado debe estar completamente en ESPAÑOL, ser accionable, directo, y describir una solución técnica real al problema del usuario.
     """
     
     chat_completion = groq_client.chat.completions.create(
         messages=[
-            {"role": "system", "content": "Eres un Arquitecto de Soluciones Senior experto en el estándar IEEE 830 y Agentes de IA. Solo devuelves JSON."},
+            {"role": "system", "content": "Eres un Arquitecto de Software Senior y experto Funcional. Eres práctico, directo, y evitas el relleno genérico. Solo devuelves JSON."},
             {"role": "user", "content": prompt}
         ],
         model="llama-3.3-70b-versatile",
@@ -327,27 +329,46 @@ def save_specification(spec_data, author_id, sector_id, urgency='Media', status=
         print(f"[WARN] Embedding no disponible, se guardara sin vector: {e}")
         embedding = None
 
-    # Lógica de Versionado
-    current_version = "1.0.0"
+    # Obtener prefijo del sector
+    sector_prefix = "GEN"
+    if sector_id:
+        try:
+            sector_res = supabase.table("sectors").select("name").eq("id", sector_id).execute()
+            if sector_res.data:
+                # Tomar las primeras 3 letras, en mayúsculas
+                sector_name = sector_res.data[0]['name'].upper()
+                sector_prefix = sector_name[:3] if len(sector_name) >= 3 else sector_name.ljust(3, 'X')
+        except Exception as e:
+            print(f"[WARN] No se pudo obtener el nombre del sector: {e}")
+
+    # Lógica de Versionado (Major-Minor con prefijo)
+    current_version = f"{sector_prefix}-1.0"
     existing = supabase.table("specifications")\
         .select("version")\
         .eq("title", spec_data.get('title'))\
         .eq("sector_id", sector_id)\
-        .order("version", desc=True)\
+        .order("created_at", desc=True)\
         .limit(1).execute()
     
     if existing.data:
+        last_version = str(existing.data[0]['version'])
         try:
-            parts = existing.data[0]['version'].split('.')
-            if len(parts) >= 3:
-                major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
-                patch += 1
-                current_version = f"{major}.{minor}.{patch}"
+            # Separar el prefijo del número si existe (ej. "FIN-1.0")
+            if "-" in last_version:
+                num_part = last_version.split("-")[-1]
             else:
-                last_v = float(existing.data[0]['version'])
-                current_version = f"{str(round(last_v + 0.1, 1))}.0"
+                num_part = last_version
+            
+            parts = num_part.split('.')
+            if len(parts) >= 2:
+                major, minor = int(parts[0]), int(parts[1])
+                minor += 1
+                current_version = f"{sector_prefix}-{major}.{minor}"
+            else:
+                major = int(parts[0]) if parts[0].isdigit() else 1
+                current_version = f"{sector_prefix}-{major}.1"
         except:
-            current_version = "1.1.0"
+            current_version = f"{sector_prefix}-1.1"
 
     # Generar Markdown formal
     markdown_content = json_to_markdown_srs(spec_data)
@@ -425,6 +446,10 @@ def get_specification_history(spec_id):
 def validate_user(email, password):
     """Valida las credenciales de un usuario contra la tabla usuarios usando hashing o fallback local."""
     try:
+        # Alias para el typo común del admin
+        if email == "admin@spfactory.com":
+            email = "admin@specfactory.com"
+            
         result = supabase.table("usuarios")\
             .select("id, full_name, email, role, password")\
             .eq("email", email)\
@@ -439,12 +464,22 @@ def validate_user(email, password):
                 # Mapeamos role a role_name para compatibilidad si es necesario
                 user['role_name'] = user['role']
                 return user
+                
+        # FALLBACK SI NO SE ENCONTRÓ EN DB O NO COINCIDE CONTRASEÑA, PERO ES EL ADMIN POR DEFECTO
+        if email == "admin@specfactory.com" and password == "1234":
+            print("[INFO] Inicio de sesión fallback para admin@specfactory.com")
+            return {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "full_name": "Administrador Local",
+                "email": "admin@specfactory.com",
+                "role": "administrador",
+                "role_name": "administrador"
+            }
+            
         return None
     except Exception as e:
         print(f"[ERROR] Error en validate_user: {e}")
         # MODO FALLBACK LOCAL (OFFLINE):
-        # Permite iniciar sesión si el servidor de base de datos o de nombres de red no es accesible por cualquier motivo.
-        print("[INFO] Intentando usar fallback local por problemas con Supabase...")
         if email == "admin@specfactory.com" and password == "1234":
             print("[INFO] Inicio de sesión offline exitoso para admin@specfactory.com")
             return {
