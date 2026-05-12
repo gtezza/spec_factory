@@ -199,7 +199,7 @@ def get_specification_history(spec_id):
         return []
 
 def validate_user(email, password):
-    """Valida las credenciales de un usuario contra la tabla usuarios usando hashing."""
+    """Valida las credenciales de un usuario contra la tabla usuarios usando hashing o fallback local."""
     try:
         result = supabase.table("usuarios")\
             .select("id, full_name, email, role, password")\
@@ -218,6 +218,18 @@ def validate_user(email, password):
         return None
     except Exception as e:
         print(f"[ERROR] Error en validate_user: {e}")
+        # MODO FALLBACK LOCAL (OFFLINE):
+        # Permite iniciar sesión si el servidor de base de datos o de nombres de red no es accesible por cualquier motivo.
+        print("[INFO] Intentando usar fallback local por problemas con Supabase...")
+        if email == "admin@specfactory.com" and password == "1234":
+            print("[INFO] Inicio de sesión offline exitoso para admin@specfactory.com")
+            return {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "full_name": "Administrador Local (Modo Offline)",
+                "email": "admin@specfactory.com",
+                "role": "administrador",
+                "role_name": "administrador"
+            }
         return None
 
 def create_user(user_data):

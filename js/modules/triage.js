@@ -71,9 +71,17 @@ export async function saveRequest() {
         const { data, error } = await sbClient.from('triage_requests').insert([req]).select();
         if (error) throw error;
         
-        showToast(`Solicitud ${req.request_id} guardada con éxito.`, 'success');
+        showToast(`Solicitud ${req.request_id} guardada con éxito en el servidor.`, 'success');
     } catch (error) {
-        showToast('Error al guardar: ' + error.message, 'error');
+        console.warn('Fallo al guardar en base de datos central, guardando localmente...', error);
+        try {
+            const offlineRequests = JSON.parse(localStorage.getItem('sf_offline_requests') || '[]');
+            offlineRequests.push({ ...req, created_at: new Date().toISOString(), offline: true });
+            localStorage.setItem('sf_offline_requests', JSON.stringify(offlineRequests));
+            showToast(`Modo Offline: Solicitud ${req.request_id} guardada localmente en el navegador.`, 'success');
+        } catch (storageError) {
+            showToast('Error al guardar localmente: ' + storageError.message, 'error');
+        }
     } finally {
         elements.btnSaveRequest.innerHTML = '<i class="ri-save-3-line"></i> Guardar Borrador';
         elements.btnSaveRequest.disabled = false;
