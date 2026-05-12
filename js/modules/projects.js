@@ -42,7 +42,10 @@ export async function loadProjects() {
     try {
         const result = await apiFetch(endpoints.specifications);
         if (result && result.status === 'success') {
-            activeProjects = result.data || [];
+            activeProjects = (result.data || []).map(p => ({
+                ...p,
+                project_name: p.title || p.project_name
+            }));
             localStorage.setItem('spec_factory_projects', JSON.stringify(activeProjects));
         } else {
             throw new Error('Fallo al obtener especificaciones de la API');
@@ -72,6 +75,11 @@ function renderFilteredProjects() {
 
     // Filtrar proyectos
     const filtered = activeProjects.filter(proj => {
+        // Excluir proyectos vacíos (sin nombre de proyecto definido)
+        if (!proj.project_name || proj.project_name.trim() === '') {
+            return false;
+        }
+
         const matchesSearch = !searchTerm || 
             proj.project_name?.toLowerCase().includes(searchTerm) || 
             proj.markdown?.toLowerCase().includes(searchTerm) ||
