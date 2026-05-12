@@ -53,117 +53,317 @@
             <div id="alert-banner-container" class="alert-banner-container"></div>
 
             <div class="content-body">
-                <div class="triage-grid">
-                    <!-- Column 1: Metadatos y Control -->
-                    <div class="card">
-                        <div class="card-title">
-                            <i class="ri-equalizer-line"></i>
-                            Clasificación y RBAC
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Sector Solicitante</label>
-                            <select id="select-sector" class="select-custom">
-                                <option value="">Seleccionar Sector...</option>
-                                <!-- Dinámico desde Supabase -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Prioridad / Criticidad</label>
-                            <select id="select-criticality" class="select-custom">
-                                <option value="Baja">Baja</option>
-                                <option value="Media" selected>Media</option>
-                                <option value="Alta">Alta</option>
-                                <option value="Crítica">Crítica</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Creador (ID)</label>
-                            <input type="text" id="display-creator" class="input-custom" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Aprobador Sugerido</label>
-                            <select id="select-approver" class="select-custom">
-                                <option value="">Seleccionar Aprobador...</option>
-                                <!-- Dinámico desde Supabase -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Estado Actual</label>
-                            <div id="current-status" style="padding: 8px; border-radius: 4px; font-weight: 700; text-align: center; background: #EBECF0; color: #42526E;">
-                                BORRADOR
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-top: 15px;">
-                            <label class="form-label">Archivos de Referencia (Samples)</label>
-                            <div id="upload-area" class="upload-zone">
-                                <i class="ri-upload-cloud-2-line"></i>
-                                <span>Arrastra archivos o haz clic aquí</span>
-                                <input type="file" id="file-input" multiple style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md,.csv">
-                            </div>
-                            <div id="file-list" class="file-list"></div>
-                        </div>
-                        <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 20px;">
-                            <i class="ri-save-3-line"></i> Guardar Borrador
-                        </button>
-                    </div>
-
-                    <!-- Column 2: Cuerpo del Requerimiento -->
-                    <div class="card">
-                        <div class="card-title">
-                            <i class="ri-lightbulb-line"></i>
-                            Definición de la Idea
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Objetivo de la Intención</label>
-                            <textarea id="text-objective" class="textarea-custom" placeholder="¿Qué se busca lograr con este requerimiento?"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Beneficios Esperados</label>
-                            <textarea id="text-benefits" class="textarea-custom" placeholder="Ganancias cualitativas y cuantitativas..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Retorno de Inversión (ROI)</label>
-                            <input type="text" id="input-roi" class="input-custom" placeholder="Ej: Ahorro de 20hs/semana, $5000 USD/mes">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">La Idea (Vibe Coding)</label>
-                            <textarea id="text-idea" class="textarea-custom textarea-idea" placeholder="Describe tu idea en lenguaje natural. No te preocupes por el formato, la IA lo estructurará..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Column 3: Inteligencia y Gobernanza -->
-                    <div style="display: flex; flex-direction: column; gap: 24px;">
-                        <!-- IA Chat Refinement -->
-                        <!-- IA Chat Refinement -->
-                        <div class="card" style="flex: 1; display: flex; flex-direction: column; min-height: 500px;">
+                <!-- SECCIÓN 1: TRIAGE DE IDEAS -->
+                <div id="view-triage" class="view-section">
+                    <div class="triage-grid">
+                        <!-- Column 1: Metadatos y Control -->
+                        <div class="card">
                             <div class="card-title">
-                                <i class="ri-robot-2-line"></i>
-                                Análisis IA Triage
+                                <i class="ri-equalizer-line"></i>
+                                Clasificación y RBAC
                             </div>
-                            <div class="chat-container" style="flex: 1; display: flex; flex-direction: column;">
-                                <div class="chat-messages" id="chat-messages" style="flex: 1; overflow-y: auto;">
-                                    <div class="message message-ai">
-                                        Hola. Soy tu Analista de Triage. Describe tu idea en la columna central y la analizaré según las políticas de GT Data Consulting.
+                            <div class="form-group">
+                                <label class="form-label">Sector Solicitante</label>
+                                <select id="select-sector" class="select-custom">
+                                    <option value="">Seleccionar Sector...</option>
+                                    <!-- Dinámico desde Supabase -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Prioridad / Criticidad</label>
+                                <select id="select-criticality" class="select-custom">
+                                    <option value="Baja">Baja</option>
+                                    <option value="Media" selected>Media</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Crítica">Crítica</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Creador (ID)</label>
+                                <input type="text" id="display-creator" class="input-custom" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Aprobador Sugerido</label>
+                                <select id="select-approver" class="select-custom">
+                                    <option value="">Seleccionar Aprobador...</option>
+                                    <!-- Dinámico desde Supabase -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Estado Actual</label>
+                                <div id="current-status" style="padding: 8px; border-radius: 4px; font-weight: 700; text-align: center; background: #EBECF0; color: #42526E;">
+                                    BORRADOR
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="form-label">Archivos de Referencia (Samples)</label>
+                                <div id="upload-area" class="upload-zone">
+                                    <i class="ri-upload-cloud-2-line"></i>
+                                    <span>Arrastra archivos o haz clic aquí</span>
+                                    <input type="file" id="file-input" multiple style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md,.csv">
+                                </div>
+                                <div id="file-list" class="file-list"></div>
+                            </div>
+                            <button class="btn btn-primary" id="btn-save-request" style="width: 100%; margin-top: 20px;">
+                                <i class="ri-save-3-line"></i> Guardar Borrador
+                            </button>
+                        </div>
+
+                        <!-- Column 2: Cuerpo del Requerimiento -->
+                        <div class="card">
+                            <div class="card-title">
+                                <i class="ri-lightbulb-line"></i>
+                                Definición de la Idea
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Objetivo de la Intención</label>
+                                <textarea id="text-objective" class="textarea-custom" placeholder="¿Qué se busca lograr con este requerimiento?"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Beneficios Esperados</label>
+                                <textarea id="text-benefits" class="textarea-custom" placeholder="Ganancias cualitativas y cuantitativas..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Retorno de Inversión (ROI)</label>
+                                <input type="text" id="input-roi" class="input-custom" placeholder="Ej: Ahorro de 20hs/semana, $5000 USD/mes">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">La Idea (Vibe Coding)</label>
+                                <textarea id="text-idea" class="textarea-custom textarea-idea" placeholder="Describe tu idea en lenguaje natural. No te preocupes por el formato, la IA lo estructurará..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Inteligencia y Gobernanza -->
+                        <div style="display: flex; flex-direction: column; gap: 24px;">
+                            <!-- IA Chat Refinement -->
+                            <div class="card" style="flex: 1; display: flex; flex-direction: column; min-height: 500px;">
+                                <div class="card-title">
+                                    <i class="ri-robot-2-line"></i>
+                                    Análisis IA Triage
+                                </div>
+                                <div class="chat-container" style="flex: 1; display: flex; flex-direction: column;">
+                                    <div class="chat-messages" id="chat-messages" style="flex: 1; overflow-y: auto;">
+                                        <div class="message message-ai">
+                                            Hola. Soy tu Analista de Triage. Describe tu idea en la columna central y la analizaré según las políticas de GT Data Consulting.
+                                        </div>
+                                    </div>
+                                    <div class="chat-input-area">
+                                        <input type="text" id="chat-input" class="input-custom" style="flex: 1;" placeholder="Responder a la IA...">
+                                        <button class="btn btn-primary" id="btn-send-chat">
+                                            <i class="ri-send-plane-fill"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="chat-input-area">
-                                    <input type="text" id="chat-input" class="input-custom" style="flex: 1;" placeholder="Responder a la IA...">
-                                    <button class="btn btn-primary" id="btn-send-chat">
-                                        <i class="ri-send-plane-fill"></i>
-                                    </button>
+                            </div>
+
+                            <!-- Quality Audit -->
+                            <div class="card" id="audit-log-container" style="display: none;">
+                                <div class="card-title" style="color: var(--danger);">
+                                    <i class="ri-error-warning-line"></i>
+                                    Alertas de Calidad
+                                </div>
+                                <ul id="audit-log" style="list-style: none; font-size: 12px; color: var(--danger); padding-left: 0;">
+                                    <!-- Alertas dinámicas -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: DASHBOARD DE PROYECTOS ACTIVOS -->
+                <div id="view-projects" class="view-section" style="display: none;">
+                    <div class="dashboard-header-bar">
+                        <div class="dashboard-search-filters">
+                            <div class="search-input-wrapper">
+                                <i class="ri-search-line"></i>
+                                <input type="text" id="project-search" placeholder="Búsqueda inteligente de proyectos y requerimientos...">
+                            </div>
+                            <div class="filter-group">
+                                <select id="project-filter-sector" class="select-custom select-sm">
+                                    <option value="">Todos los Sectores</option>
+                                    <!-- Dinámico -->
+                                </select>
+                                <select id="project-filter-criticality" class="select-custom select-sm">
+                                    <option value="">Todas las Criticidades</option>
+                                    <option value="Baja">Baja</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Crítica">Crítica</option>
+                                </select>
+                                <select id="project-filter-status" class="select-custom select-sm">
+                                    <option value="">Todos los Estados</option>
+                                    <option value="BORRADOR">Borrador</option>
+                                    <option value="EN ANALISIS">En Análisis</option>
+                                    <option value="PENDIENTE APROBACION">Pendiente Aprobación</option>
+                                    <option value="APROBADO">Aprobados (SDD)</option>
+                                    <option value="RECHAZADO">Rechazados</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="projects-grid" class="projects-grid">
+                        <!-- Tarjetas de proyectos dinámicas -->
+                        <div class="loading-state">
+                            <i class="ri-loader-4-line ri-spin"></i>
+                            <p>Cargando dashboard de proyectos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: PANEL DE ADMINISTRACIÓN Y APROBACIONES -->
+                <div id="view-admin" class="view-section" style="display: none;">
+                    <div class="admin-layout">
+                        <!-- Panel Izquierdo: Lista de Solicitudes -->
+                        <div class="admin-sidebar-list card">
+                            <div class="card-title">
+                                <i class="ri-list-check-2"></i>
+                                Solicitudes Pendientes
+                            </div>
+                            <div class="admin-list-filters">
+                                <select id="admin-filter-sector" class="select-custom select-xs">
+                                    <option value="">Filtrar Sector</option>
+                                </select>
+                                <select id="admin-filter-criticality" class="select-custom select-xs">
+                                    <option value="">Filtrar Criticidad</option>
+                                    <option value="Baja">Baja</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Crítica">Crítica</option>
+                                </select>
+                            </div>
+                            <div id="admin-requests-list" class="admin-requests-list">
+                                <!-- Lista dinámica de ideas -->
+                                <div class="empty-state">
+                                    <p>No hay propuestas pendientes para auditar.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Quality Audit -->
-                        <div class="card" id="audit-log-container" style="display: none;">
-                            <div class="card-title" style="color: var(--danger);">
-                                <i class="ri-error-warning-line"></i>
-                                Alertas de Calidad
+                        <!-- Panel Derecho: Detalle de Auditoría, Glosario, MD, y Aprobación -->
+                        <div class="admin-main-detail">
+                            <!-- Detalle por defecto (Vacío) -->
+                            <div id="admin-detail-empty" class="card empty-detail-card">
+                                <i class="ri-folder-shield-2-line"></i>
+                                <h3>Panel de Control de Gobernanza</h3>
+                                <p>Selecciona una propuesta de la lista izquierda para auditar sus términos, previsualizar su reporte en Markdown y procesar su aprobación formal a especificación IEEE 830.</p>
                             </div>
-                            <ul id="audit-log" style="list-style: none; font-size: 12px; color: var(--danger); padding-left: 0;">
-                                <!-- Alertas dinámicas -->
-                            </ul>
+
+                            <!-- Contenido del Detalle Activo -->
+                            <div id="admin-detail-active" style="display: none; flex-direction: column; gap: 20px;">
+                                <!-- Cabecera del Detalle -->
+                                <div class="card">
+                                    <div class="detail-header">
+                                        <div>
+                                            <div class="detail-request-id" id="detail-request-id">ARQ-00001</div>
+                                            <h2 class="detail-title" id="detail-title">Idea de Ejemplo</h2>
+                                        </div>
+                                        <div class="detail-meta-badges">
+                                            <span id="detail-badge-sector" class="badge badge-info">Sector</span>
+                                            <span id="detail-badge-criticality" class="badge badge-danger">Criticidad</span>
+                                            <span id="detail-badge-status" class="badge badge-warning">Estado</span>
+                                        </div>
+                                    </div>
+                                    <div class="detail-sub-meta">
+                                        <span><i class="ri-user-smile-line"></i> Creador: <strong id="detail-creator-name">Usuario</strong></span>
+                                        <span><i class="ri-time-line"></i> Creado: <strong id="detail-created-date">Fecha</strong></span>
+                                    </div>
+                                </div>
+
+                                <!-- Glosario de 3 Capas Cruzado con Triage -->
+                                <div class="card">
+                                    <div class="card-title-with-actions">
+                                        <div class="card-title">
+                                            <i class="ri-book-open-line"></i>
+                                            Glosario Inteligente de 3 Capas
+                                        </div>
+                                        <span class="glosario-hint">Valida términos de la capa "Obtenido" para incorporarlos oficialmente</span>
+                                    </div>
+                                    
+                                    <div class="tabs-nav" id="glosario-tabs">
+                                        <button class="tab-btn active" data-tab="gobierno">
+                                            <i class="ri-government-line"></i> Gobierno <span class="tab-badge" id="badge-count-gobierno">0</span>
+                                        </button>
+                                        <button class="tab-btn" data-tab="tecnico">
+                                            <i class="ri-cpu-line"></i> Técnico <span class="tab-badge" id="badge-count-tecnico">0</span>
+                                        </button>
+                                        <button class="tab-btn" data-tab="obtenido">
+                                            <i class="ri-magic-line"></i> Obtenido (IA) <span class="tab-badge" id="badge-count-obtenido">0</span>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="tabs-content" id="glosario-tab-content">
+                                        <!-- Lista dinámica de términos de la capa seleccionada -->
+                                        <div class="term-list" id="term-list-container">
+                                            <p class="text-muted">Cargando términos del glosario...</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Previsualización de Propuesta en Markdown -->
+                                <div class="card">
+                                    <div class="card-title-with-actions">
+                                        <div class="card-title">
+                                            <i class="ri-file-markdown-line"></i>
+                                            Previsualización de la Propuesta (Markdown)
+                                        </div>
+                                        <button id="btn-download-md" class="btn btn-secondary btn-sm">
+                                            <i class="ri-download-line"></i> Descargar .md
+                                        </button>
+                                    </div>
+                                    <div class="markdown-preview-container" id="markdown-proposal-preview">
+                                        <!-- Renderización Markdown interactiva -->
+                                    </div>
+                                </div>
+
+                                <!-- Caja de Acciones de Gobernanza -->
+                                <div class="card approval-action-card">
+                                    <div class="card-title">
+                                        <i class="ri-shield-check-line"></i>
+                                        Resolución de la Propuesta
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Comentarios / Observaciones de Auditoría</label>
+                                        <textarea id="admin-comment" class="textarea-custom" style="min-height: 80px;" placeholder="Escribe el feedback o justificación de la resolución de gobernanza..."></textarea>
+                                    </div>
+                                    <div class="approval-buttons-group">
+                                        <button id="btn-reject-triage" class="btn btn-danger">
+                                            <i class="ri-close-circle-line"></i> Rechazar Solicitud
+                                        </button>
+                                        <button id="btn-approve-triage" class="btn btn-success btn-lg">
+                                            <i class="ri-checkbox-circle-line"></i> Ok / Aprobar (Crear SDD)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Visor Interactivo Premium de SDD (IEEE 830 + IA Agéntica) -->
+                                <div class="card sdd-view-card" id="sdd-viewer-container" style="display: none;">
+                                    <div class="sdd-header-bar">
+                                        <div class="sdd-title-area">
+                                            <div class="sdd-badge">SDD GENERADA</div>
+                                            <h3>Especificación de Requerimientos de Software (IEEE 830)</h3>
+                                        </div>
+                                        <button id="btn-export-pdf" class="btn btn-primary">
+                                            <i class="ri-file-pdf-line"></i> Descargar PDF Corporativo GT
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="sdd-workspace">
+                                        <!-- Barra de Navegación Lateral Interna para el Visor -->
+                                        <nav class="sdd-nav-sidebar" id="sdd-sections-nav">
+                                            <a href="#sdd-sec-1" class="sdd-nav-link active">1. Introducción</a>
+                                            <a href="#sdd-sec-2" class="sdd-nav-link">2. Descripción General</a>
+                                            <a href="#sdd-sec-3" class="sdd-nav-link">3. Requisitos Específicos</a>
+                                            <a href="#sdd-sec-4" class="sdd-nav-link">4. Apéndices</a>
+                                        </nav>
+                                        
+                                        <!-- Contenido del Documento -->
+                                        <div class="sdd-document-content" id="sdd-document-body">
+                                            <!-- Se inyecta dinámicamente con estilo formal de GT Consulting -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
