@@ -29,5 +29,10 @@ export const endpoints = {
     analyzeVibe: '/api/analyze-vibe',
     approvers: '/api/approvers',
     glossary: '/api/glossary',
-    glossaryPropose: '/api/glossary/propose'
+    glossaryPropose: '/api/glossary/propose',
+    glossaryConfirm: '/api/glossary/confirm',
+    triage: '/api/triage',
+    triageApprove: '/api/triage/approve',
+    triageReject: '/api/triage/reject',
+    specifications: '/api/specifications'
 };
