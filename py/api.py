@@ -332,7 +332,7 @@ def approve_triage():
         # 3. Guardar la especificación en Supabase con estado 'Aprobada'
         print(f"[API] Guardando especificación en base de datos...")
         db_spec = save_specification(
-            spec_json=spec_json,
+            spec_data=spec_json,
             author_id=triage_data.get('creator_id') or approver_id,
             sector_id=triage_data.get('sector_id'),
             urgency='Media',
