@@ -13,6 +13,7 @@ import { initAttachmentEvents } from './modules/attachments.js';
 import { sbClient } from './modules/supabase.js';
 import { initProjects, loadProjects } from './modules/projects.js';
 import { initAdmin, loadAdminTriage } from './modules/admin.js';
+import { initDashboard, loadDashboard } from './modules/dashboard.js';
 
 function withTimeout(promise, timeoutMs = 1500) {
     return Promise.race([
@@ -81,6 +82,7 @@ export function navigateSPA(targetViewId) {
     }
 
     const views = [
+        { id: 'dashboard', el: elements.viewDashboard, nav: elements.navDashboard },
         { id: 'triage', el: elements.viewTriage, nav: elements.navTriage },
         { id: 'projects', el: elements.viewProjects, nav: elements.navProjects },
         { id: 'admin', el: elements.viewAdmin, nav: elements.navAdmin }
@@ -96,11 +98,19 @@ export function navigateSPA(targetViewId) {
         if (activeView.el) activeView.el.style.display = 'block';
         if (activeView.nav) activeView.nav.classList.add('active');
 
+        // Actualizar Breadcrumb
+        const breadcrumbSpan = document.getElementById('current-request-id');
+        if (breadcrumbSpan) {
+            breadcrumbSpan.innerText = targetViewId.toUpperCase();
+        }
+
         // Disparar cargas según corresponda
         if (targetViewId === 'projects') {
             loadProjects();
         } else if (targetViewId === 'admin') {
             loadAdminTriage();
+        } else if (targetViewId === 'dashboard') {
+            loadDashboard();
         }
     }
 }
@@ -113,13 +123,20 @@ function setupEventListeners() {
         await login(email, password);
         if (state.user) {
             await loadInitialData();
-            navigateSPA('triage');
+            initDashboard();
+            initProjects();
+            initAdmin();
+            navigateSPA('dashboard');
         }
     });
 
     elements.btnLogout?.addEventListener('click', logout);
 
     // Navegación SPA
+    elements.navDashboard?.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateSPA('dashboard');
+    });
     elements.navTriage?.addEventListener('click', (e) => {
         e.preventDefault();
         navigateSPA('triage');
@@ -156,16 +173,25 @@ function setupEventListeners() {
 
 async function init() {
     console.log('Iniciando Sistema de Triage v3.0...');
-    await checkSession();
-    await loadInitialData();
-    initProjects();
-    initAdmin();
+    
+    // CRÍTICO: Atar eventos primero para evitar la recarga de página por submit GET del form
     setupEventListeners();
     
-    // Si ya está autenticado, activar la vista por defecto
+    // Verificar si hay sesión guardada
+    await checkSession();
+    
+    // Si ya está autenticado, cargar datos e inicializar vistas
     if (state.user) {
-        navigateSPA('triage');
+        await loadInitialData();
+        initDashboard();
+        initProjects();
+        initAdmin();
+        navigateSPA('dashboard');
     }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

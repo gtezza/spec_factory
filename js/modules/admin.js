@@ -843,3 +843,60 @@ function hideLoadingOverlay() {
     }
     document.body.style.overflow = '';
 }
+
+/**
+ * Sincroniza una solicitud offline seleccionada con el servidor central
+ */
+async function handleSyncOfflineRequest() {
+    if (!selectedRequest || !selectedRequest.offline) return;
+
+    try {
+        showLoadingOverlay('Sincronizando con base de datos...', 'Migrando datos locales a persistencia centralizada...');
+        
+        // Limpiar flags offline para enviar datos puros
+        const cleanRequest = { ...selectedRequest };
+        delete cleanRequest.offline;
+        delete cleanRequest.id;
+        delete cleanRequest.sectors;
+        delete cleanRequest.statuses;
+        delete cleanRequest.created_at;
+
+        // Intentar guardar vía API
+        const response = await apiFetch(endpoints.triage, {
+            method: 'POST',
+            body: JSON.stringify(cleanRequest)
+        });
+
+        if (response && response.status === 'success') {
+            showToast('Propuesta sincronizada con éxito', 'success');
+            
+            // Eliminar de localStorage
+            try {
+                let offlineRequests = JSON.parse(localStorage.getItem('sf_offline_requests') || '[]');
+                offlineRequests = offlineRequests.filter(req => req.request_id !== selectedRequest.request_id);
+                localStorage.setItem('sf_offline_requests', JSON.stringify(offlineRequests));
+            } catch (storageError) {
+                console.error('Error al limpiar localStorage post-sync:', storageError);
+            }
+
+            // Recargar panel administrativo
+            await loadAdminTriage();
+            
+            // Seleccionar el nuevo item si es posible
+            if (response.data && response.data.id) {
+                // Buscamos el nuevo objeto en la lista recargada
+                const syncedReq = adminRequests.find(r => r.id === response.data.id);
+                if (syncedReq) {
+                    await loadRequestDetail(syncedReq);
+                }
+            }
+        } else {
+            throw new Error(response.error || 'Fallo en la sincronización');
+        }
+    } catch (error) {
+        console.error('Error durante sincronización offline:', error);
+        showToast('Error al sincronizar: ' + error.message, 'error');
+    } finally {
+        hideLoadingOverlay();
+    }
+}

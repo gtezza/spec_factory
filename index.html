@@ -22,7 +22,11 @@
                 SPEC FACTORY
             </div>
             <nav class="nav-group">
-                <a href="#" class="nav-item active" id="nav-triage">
+                <a href="#" class="nav-item active" id="nav-dashboard">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-triage">
                     <i class="ri-survey-line"></i>
                     <span>Triage de Ideas</span>
                 </a>
@@ -47,7 +51,7 @@
         <main class="main-container">
             <header class="top-nav">
                 <div class="breadcrumb">
-                    Proyectos / <span id="current-request-id">NUEVA SOLICITUD</span>
+                    Proyectos / <span id="current-request-id">INICIO</span>
                 </div>
                 <div class="user-meta" id="user-display" style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
                     <span id="user-name" style="font-weight: 500;">Cargando...</span>
@@ -57,8 +61,25 @@
             <div id="alert-banner-container" class="alert-banner-container"></div>
 
             <div class="content-body">
+                <!-- SECCIÓN 0: DASHBOARD GENERAL -->
+                <div id="view-dashboard" class="view-section" style="display: block;">
+                    <div class="dashboard-banner card">
+                        <div class="banner-content">
+                            <h2 class="welcome-title">¡Bienvenido a Spec Factory!</h2>
+                            <p class="welcome-subtitle" id="dashboard-role-badge">Cargando información del usuario...</p>
+                        </div>
+                        <div id="dashboard-quick-actions" class="dashboard-quick-actions">
+                            <!-- Dinámico -->
+                        </div>
+                    </div>
+                    
+                    <div id="dashboard-content-area" style="margin-top: 24px;">
+                        <!-- Se cargará dinámicamente según el rol -->
+                    </div>
+                </div>
+
                 <!-- SECCIÓN 1: TRIAGE DE IDEAS -->
-                <div id="view-triage" class="view-section">
+                <div id="view-triage" class="view-section" style="display: none;">
                     <div class="triage-grid">
                         <!-- Column 1: Metadatos y Control -->
                         <div class="card">

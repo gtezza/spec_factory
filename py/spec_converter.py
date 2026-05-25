@@ -473,7 +473,8 @@ def validate_user(email, password):
                 "full_name": "Administrador Local",
                 "email": "admin@specfactory.com",
                 "role": "administrador",
-                "role_name": "administrador"
+                "role_name": "administrador",
+                "sector_id": None
             }
             
         return None
@@ -487,7 +488,8 @@ def validate_user(email, password):
                 "full_name": "Administrador Local (Modo Offline)",
                 "email": "admin@specfactory.com",
                 "role": "administrador",
-                "role_name": "administrador"
+                "role_name": "administrador",
+                "sector_id": None
             }
         return None
 
@@ -502,7 +504,7 @@ def create_user(user_data):
             "email": user_data['email'],
             "password": hashed_password,
             "role": user_data['role'],
-            "sector": user_data.get('sector')
+            "sector_id": user_data.get('sector_id')
         }
         
         result = supabase.table("usuarios").insert(data).execute()

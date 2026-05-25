@@ -1705,3 +1705,87 @@ body {
     }
 }
 
+/* ==========================================================================
+   ESTILOS PREMIUM PARA EL DASHBOARD DE INICIO (SPEC FACTORY)
+   ========================================================================== */
+
+.dashboard-banner {
+    background: linear-gradient(135deg, #1d212a 0%, #161a22 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    margin-bottom: 24px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.welcome-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+    font-size: 13.5px;
+    color: #DFE1E6;
+}
+
+.dashboard-quick-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.kpi-card {
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.25) !important;
+}
+
+.dashboard-table th {
+    padding: 14px 10px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.dashboard-table td {
+    vertical-align: middle;
+}
+
+.table-row-hover:hover {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+@media (max-width: 992px) {
+    .kpi-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .dashboard-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 24px;
+    }
+    
+    .dashboard-quick-actions {
+        width: 100%;
+    }
+    
+    .dashboard-quick-actions button {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+

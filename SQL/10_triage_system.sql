@@ -33,9 +33,9 @@ UPDATE sectors SET code = 'OPS' WHERE name = 'DevOps';
 CREATE TABLE IF NOT EXISTS triage_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     request_id TEXT UNIQUE NOT NULL, -- Formato: [3 LETRAS SECTOR]-[0000X]
-    creator_id UUID REFERENCES auth.users(id),
-    requester_id UUID REFERENCES auth.users(id),
-    approver_id UUID REFERENCES auth.users(id),
+    creator_id UUID REFERENCES public.usuarios(id),
+    requester_id UUID REFERENCES public.usuarios(id),
+    approver_id UUID REFERENCES public.usuarios(id),
     sector_id UUID REFERENCES sectors(id),
     status_id UUID REFERENCES statuses(id),
     
@@ -63,3 +63,18 @@ CREATE TABLE IF NOT EXISTS glossary_v2 (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(term, layer)
 );
+
+-- ==========================================
+-- PERMISOS DE SEGURIDAD (SUPABASE DATA API)
+-- ==========================================
+
+-- Permisos para Estados
+GRANT SELECT ON public.statuses TO anon, authenticated, service_role;
+
+-- Permisos para Triage Requests
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.triage_requests TO authenticated, service_role;
+GRANT SELECT ON public.triage_requests TO anon;
+
+-- Permisos para Glosario
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.glossary_v2 TO authenticated, service_role;
+GRANT SELECT ON public.glossary_v2 TO anon;

@@ -53,14 +53,21 @@ export const elements = {
 
     // --- NUEVOS ELEMENTOS SPA Y GOBERNANZA ---
     // Navegación Lateral
+    get navDashboard() { return document.getElementById('nav-dashboard'); },
     get navTriage() { return document.getElementById('nav-triage'); },
     get navProjects() { return document.getElementById('nav-projects'); },
     get navAdmin() { return document.getElementById('nav-admin'); },
 
     // Secciones de Vista Principal (SPA)
+    get viewDashboard() { return document.getElementById('view-dashboard'); },
     get viewTriage() { return document.getElementById('view-triage'); },
     get viewProjects() { return document.getElementById('view-projects'); },
     get viewAdmin() { return document.getElementById('view-admin'); },
+
+    // Elementos del Dashboard
+    get dashboardRoleBadge() { return document.getElementById('dashboard-role-badge'); },
+    get dashboardQuickActions() { return document.getElementById('dashboard-quick-actions'); },
+    get dashboardContentArea() { return document.getElementById('dashboard-content-area'); },
 
     // Dashboard de Proyectos Activos
     get projectSearch() { return document.getElementById('project-search'); },

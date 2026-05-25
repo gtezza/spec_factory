@@ -77,8 +77,19 @@ export async function saveRequest(statusName = 'BORRADOR') {
     }
 
     try {
-        const { data, error } = await sbClient.from('triage_requests').insert([req]).select();
-        if (error) throw error;
+        const isEditing = !!state.currentRequest.id;
+        const url = isEditing ? `/api/triage/${state.currentRequest.id}` : '/api/triage';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        // En lugar de sbClient directo, usamos la API del backend para persistencia centralizada
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req)
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Fallo al guardar propuesta');
         
         const successMessage = isSubmit 
             ? `Solicitud ${req.request_id} enviada con éxito para la aprobación de la administración.`

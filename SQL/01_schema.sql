@@ -29,11 +29,13 @@ CREATE TABLE IF NOT EXISTS roles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabla de Perfiles (Extensión de auth.users)
-CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+-- Tabla de Usuarios (Sistema Propio)
+CREATE TABLE IF NOT EXISTS usuarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     full_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
+    password TEXT, -- Añadido para login personalizado
+    role TEXT DEFAULT 'user', -- Simplificado para coincidir con lógica de Flask
     role_id UUID REFERENCES roles(id),
     sector_id UUID REFERENCES sectors(id),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -48,19 +50,19 @@ CREATE TABLE IF NOT EXISTS specifications (
     content JSONB NOT NULL, -- Almacena las secciones IEEE 830
     markdown TEXT, -- Representación final en MD
     sector_id UUID REFERENCES sectors(id),
-    author_id UUID REFERENCES profiles(id),
-    approver_id UUID REFERENCES profiles(id),
+    author_id UUID REFERENCES usuarios(id),
+    approver_id UUID REFERENCES usuarios(id),
     urgency urgency_level DEFAULT 'Media',
     criticality criticality_level DEFAULT 'Media',
     status spec_status DEFAULT 'Borrador',
-    embedding vector(768), -- Vector de 768 dimensiones (Gemini)
+    embedding vector(1024), -- Vector de 1024 dimensiones (Cohere multilingual)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Función para búsqueda semántica
 CREATE OR REPLACE FUNCTION match_specifications (
-  query_embedding vector(768),
+  query_embedding vector(1024),
   match_threshold float,
   match_count int
 )
@@ -83,3 +85,22 @@ $$;
 
 -- Índices para optimización
 CREATE INDEX ON specifications USING hnsw (embedding vector_cosine_ops);
+
+-- ==========================================
+-- PERMISOS DE SEGURIDAD (SUPABASE DATA API)
+-- ==========================================
+
+-- Permisos para Sectores y Roles
+GRANT SELECT ON public.sectors TO anon, authenticated, service_role;
+GRANT SELECT ON public.roles TO anon, authenticated, service_role;
+
+-- Permisos para Usuarios
+GRANT SELECT, INSERT, UPDATE ON public.usuarios TO authenticated, service_role;
+GRANT SELECT ON public.usuarios TO anon;
+
+-- Permisos para Especificaciones
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.specifications TO authenticated, service_role;
+GRANT SELECT ON public.specifications TO anon;
+
+-- Permisos para funciones vectoriales
+GRANT EXECUTE ON FUNCTION match_specifications TO anon, authenticated, service_role;
