@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS roles (
     description TEXT
 );
 
+ALTER TABLE roles ADD COLUMN IF NOT EXISTS description TEXT;
+
 INSERT INTO roles (name, description) VALUES 
 ('admin', 'Acceso total'),
 ('creador', 'Generador de specs'),
@@ -21,14 +23,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
     full_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role_name TEXT NOT NULL,
+    role TEXT NOT NULL,
     role_id UUID REFERENCES roles(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Asegurar de forma correctiva que existan las columnas necesarias en caso de que la tabla ya existiese
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role TEXT;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES roles(id);
+
 -- 3. Insertar usuarios de prueba
 -- Admin
-INSERT INTO usuarios (full_name, email, password, role_name, role_id)
+INSERT INTO usuarios (full_name, email, password, role, role_id)
 VALUES (
     'Administrador', 
     'admin@specfactory.com', 
@@ -39,7 +45,7 @@ VALUES (
 ON CONFLICT (email) DO UPDATE SET password = 'admin';
 
 -- Gerardo Tezza
-INSERT INTO usuarios (full_name, email, password, role_name, role_id)
+INSERT INTO usuarios (full_name, email, password, role, role_id)
 VALUES (
     'Gerardo Tezza', 
     'gtezza@specfactory.com', 
