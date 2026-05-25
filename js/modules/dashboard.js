@@ -280,7 +280,9 @@ function renderUserDashboard() {
         html += `
             <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;" class="table-row-hover">
                 <td style="padding: 14px 10px; font-weight: 700; color: var(--primary);">${compactId}</td>
-                <td style="padding: 14px 10px; font-weight: 600; color: var(--text-main); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${idea.idea}</td>
+                <td style="padding: 14px 10px; vertical-align: middle;">
+                    <div style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text-main);" title="${idea.idea}">${idea.idea}</div>
+                </td>
                 <td style="padding: 14px 10px; color: var(--text-muted);"><i class="ri-government-line"></i> ${sectorName}</td>
                 <td style="padding: 14px 10px;"><span class="badge ${critBadgeClass}" style="font-size: 11px;">${idea.criticality || 'Media'}</span></td>
                 <td style="padding: 14px 10px;"><span class="badge ${badgeClass}" ${customStyle}>${idea.offline ? 'LOCAL / OFFLINE' : statusName}</span></td>
@@ -403,7 +405,9 @@ function renderAdminDashboard() {
             html += `
                 <tr style="border-bottom: 1px solid var(--border-color);" class="table-row-hover">
                     <td style="padding: 12px 8px; font-weight: 700; color: var(--primary);">${compactId}</td>
-                    <td style="padding: 12px 8px; font-weight: 600; color: var(--text-main); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${idea.idea}</td>
+                    <td style="padding: 12px 8px; vertical-align: middle;">
+                        <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text-main);" title="${idea.idea}">${idea.idea}</div>
+                    </td>
                     <td style="padding: 12px 8px; color: var(--text-muted);"><i class="ri-government-line"></i> ${sectorName}</td>
                     <td style="padding: 12px 8px;"><span class="badge ${critBadgeClass}">${idea.criticality || 'Media'}</span></td>
                     <td style="padding: 12px 8px; font-size: 11.5px; color: var(--text-muted);">${creatorName}</td>
@@ -475,7 +479,9 @@ function renderAdminDashboard() {
             html += `
                 <tr style="border-bottom: 1px solid var(--border-color);" class="table-row-hover">
                     <td style="padding: 12px 8px; font-weight: 700; color: var(--primary);">${compactId}</td>
-                    <td style="padding: 12px 8px; font-weight: 600; color: var(--text-main); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${idea.idea}</td>
+                    <td style="padding: 12px 8px; vertical-align: middle;">
+                        <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text-main);" title="${idea.idea}">${idea.idea}</div>
+                    </td>
                     <td style="padding: 12px 8px; color: var(--text-muted);"><i class="ri-government-line"></i> ${sectorName}</td>
                     <td style="padding: 12px 8px;"><span class="badge badge-secondary">${idea.criticality || 'Media'}</span></td>
                     <td style="padding: 12px 8px;"><span class="badge ${badgeClass}">${statusName}</span></td>
