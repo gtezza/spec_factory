@@ -18,3 +18,17 @@ venv/
 Thumbs.db
 Desktop.ini
 SDD/
+
+# Dependencias de Node
+node_modules/
+package-lock.json
+
+# Carpetas de Utilidades y Resguardos
+scratch/
+SQL/
+docs/
+
+# Scripts Helpers Python
+check_users.py
+rollback.py
+update_admin.py
