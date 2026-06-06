@@ -165,23 +165,20 @@
 
                         <!-- Column 3: Inteligencia y Gobernanza -->
                         <div style="display: flex; flex-direction: column; gap: 24px;">
-                            <!-- IA Chat Refinement -->
+                            <!-- IA Triage Analysis -->
                             <div class="card" style="flex: 1; display: flex; flex-direction: column; min-height: 500px;">
                                 <div class="card-title">
                                     <i class="ri-robot-2-line"></i>
                                     Análisis IA Triage
                                 </div>
-                                <div class="chat-container" style="flex: 1; display: flex; flex-direction: column;">
-                                    <div class="chat-messages" id="chat-messages" style="flex: 1; overflow-y: auto;">
-                                        <div class="message message-ai">
-                                            Hola. Soy tu Analista de Triage. Describe tu idea en la columna central y la analizaré según las políticas de GT Data Consulting.
+                                <div style="display: flex; flex-direction: column; gap: 15px; flex: 1;">
+                                    <button class="btn btn-primary" id="btn-analyze-idea" style="width: 100%; padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <i class="ri-play-line"></i> Iniciar Análisis de Idea
+                                    </button>
+                                    <div id="analysis-report-container" style="flex: 1; overflow-y: auto; border: 1px dashed var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column;">
+                                        <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--dark-text-muted); text-align: center; font-size: 13px;">
+                                            Completa la idea en la columna central e inicia el análisis.
                                         </div>
-                                    </div>
-                                    <div class="chat-input-area">
-                                        <input type="text" id="chat-input" class="input-custom" style="flex: 1;" placeholder="Responder a la IA...">
-                                        <button class="btn btn-primary" id="btn-send-chat">
-                                            <i class="ri-send-plane-fill"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -299,6 +296,20 @@
                                     </div>
                                 </div>
 
+                                <!-- Caja de Sincronización Offline -->
+                                <div class="card" id="sync-offline-box" style="display: none; border-top: 5px solid #f97316; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);">
+                                    <div class="card-title" style="color: #f97316; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                        <i class="ri-wifi-off-line" style="font-size: 20px;"></i>
+                                        Sincronizar Propuesta de Triage Local
+                                    </div>
+                                    <p style="font-size: 13.5px; color: var(--dark-text-muted); line-height: 1.6; margin-top: 10px; margin-bottom: 20px;">
+                                        Esta solicitud de triage se guardó de forma segura en el almacenamiento local de tu navegador debido a un fallo de red o contingencia con el servidor central de Supabase. Para poder auditarla, asignarla o generar la especificación de requerimientos de software IEEE 830 mediante Inteligencia Artificial, es mandatorio sincronizar el borrador primero.
+                                    </p>
+                                    <button id="btn-sync-offline-request" class="btn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; width: 100%; padding: 14px; font-weight: 700; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);">
+                                        <i class="ri-cloud-upload-line"></i> Sincronizar Solicitud con Servidor Central
+                                    </button>
+                                </div>
+
                                 <!-- Glosario de 3 Capas Cruzado con Triage -->
                                 <div class="card">
                                     <div class="card-title-with-actions">
@@ -357,41 +368,39 @@
                                     </div>
                                     <div class="approval-buttons-group">
                                         <button id="btn-reject-triage" class="btn btn-danger">
-                                            <i class="ri-close-circle-line"></i> Rechazar Solicitud
+                                        <i class="ri-close-circle-line"></i> Rechazar Solicitud
                                         </button>
                                         <button id="btn-approve-triage" class="btn btn-success btn-lg">
                                             <i class="ri-checkbox-circle-line"></i> Ok / Aprobar (Crear SDD)
                                         </button>
                                     </div>
                                 </div>
-
-                                <!-- Caja de Sincronización Offline -->
-                                <div class="card" id="sync-offline-box" style="display: none; border-top: 5px solid #f97316; box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);">
-                                    <div class="card-title" style="color: #f97316; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                        <i class="ri-wifi-off-line" style="font-size: 20px;"></i>
-                                        Sincronizar Propuesta de Triage Local
-                                    </div>
-                                    <p style="font-size: 13.5px; color: var(--dark-text-muted); line-height: 1.6; margin-top: 10px; margin-bottom: 20px;">
-                                        Esta solicitud de triage se guardó de forma segura en el almacenamiento local de tu navegador debido a un fallo de red o contingencia con el servidor central de Supabase. Para poder auditarla, asignarla o generar la especificación de requerimientos de software IEEE 830 mediante Inteligencia Artificial, es mandatorio sincronizar el borrador primero.
-                                    </p>
-                                    <button id="btn-sync-offline-request" class="btn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; width: 100%; padding: 14px; font-weight: 700; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);">
-                                        <i class="ri-cloud-upload-line"></i> Sincronizar Solicitud con Servidor Central
-                                    </button>
-                                </div>
-
+                                
                                 <!-- Visor Interactivo Premium de SDD (IEEE 830 + IA Agéntica) -->
                                 <div class="card sdd-view-card" id="sdd-viewer-container" style="display: none;">
-                                    <div class="sdd-header-bar">
-                                        <div class="sdd-title-area">
-                                            <div class="sdd-badge">SDD GENERADA</div>
-                                            <h3>Especificación de Requerimientos de Software (IEEE 830)</h3>
+                                    <div class="sdd-header-bar" style="display: flex; flex-direction: column; gap: 15px; align-items: stretch;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                            <div class="sdd-title-area">
+                                                <div class="sdd-badge">SDD GENERADA</div>
+                                                <h3>Especificación de Requerimientos de Software (IEEE 830)</h3>
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button id="btn-export-pdf" class="btn btn-primary">
+                                                    <i class="ri-file-pdf-line"></i> Descargar PDF Corporativo GT
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button id="btn-export-pdf" class="btn btn-primary">
-                                            <i class="ri-file-pdf-line"></i> Descargar PDF Corporativo GT
-                                        </button>
+                                        <div class="tabs-nav" id="sdd-view-tabs" style="margin-top: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 0; display: flex; gap: 10px;">
+                                            <button class="tab-btn active" data-tab="sdd-spec" id="tab-btn-spec" style="padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                                <i class="ri-file-text-line"></i> Especificación Técnica
+                                            </button>
+                                            <button class="tab-btn" id="tab-btn-agile" data-tab="sdd-agile" style="padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                                <i class="ri-git-pull-request-line"></i> Backlog Agile (Kanban)
+                                            </button>
+                                        </div>
                                     </div>
                                     
-                                    <div class="sdd-workspace">
+                                    <div class="sdd-workspace" id="sdd-spec-workspace" style="display: flex;">
                                         <!-- Barra de Navegación Lateral Interna para el Visor -->
                                         <nav class="sdd-nav-sidebar" id="sdd-sections-nav">
                                             <a href="#sdd-sec-1" class="sdd-nav-link active">1. Introducción</a>
@@ -401,11 +410,44 @@
                                         </nav>
                                         
                                         <!-- Contenido del Documento -->
-                                        <div class="sdd-document-content" id="sdd-document-body">
+                                        <div class="sdd-document-content" id="sdd-document-body" style="flex: 1; overflow-y: auto;">
                                             <!-- Se inyecta dinámicamente con estilo formal de GT Consulting -->
                                         </div>
                                     </div>
+
+                                    <!-- Panel de Backlog Agile -->
+                                    <div class="sdd-agile-workspace" id="sdd-agile-workspace" style="display: none; padding: 24px; flex-direction: column; gap: 24px;">
+                                        <!-- Botón para generar backlog si no existe -->
+                                        <div id="agile-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; border: 2px dashed rgba(255,255,255,0.05); border-radius: 8px; gap: 15px; background: rgba(0,0,0,0.1);">
+                                            <i class="ri-git-pull-request-line" style="font-size: 48px; color: var(--primary); opacity: 0.5;"></i>
+                                            <h4 style="margin: 0; font-size: 16px; font-weight: 700;">Backlog Agile no generado</h4>
+                                            <p style="font-size: 13px; color: var(--dark-text-muted); max-width: 400px; margin: 0; line-height: 1.5;">El agente experto en Agile Kanban puede analizar esta especificación para estructurar la Épica de desarrollo y el backlog de Historias de Usuario.</p>
+                                            <button class="btn btn-primary" id="btn-generate-agile" style="padding: 10px 20px; font-weight: 600; font-size: 13px;">
+                                                <i class="ri-magic-line"></i> Consultar Agente Agile Kanban
+                                            </button>
+                                        </div>
+
+                                        <!-- Contenido del Backlog (Épica + Historias) -->
+                                        <div id="agile-backlog-content" style="display: none; flex-direction: column; gap: 24px;">
+                                            <!-- Cabecera de la épica -->
+                                            <div class="card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 8px; margin: 0;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px;">Épica Ágil</div>
+                                                <h3 id="agile-epic-title" style="margin: 8px 0; font-size: 18px; font-weight: 700; color: #fff;"></h3>
+                                                <p id="agile-epic-desc" style="font-size: 13px; color: var(--dark-text-muted); line-height: 1.5; margin: 0;"></p>
+                                            </div>
+
+                                            <!-- Listado de historias de usuario en formato tarjetas Kanban -->
+                                            <div>
+                                                <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: #fff;">
+                                                    <i class="ri-list-check" style="color: var(--primary);"></i> Historias de Usuario (Backlog)
+                                                </h4>
+                                                <div id="agile-stories-container" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                                                    <!-- Tarjetas de US inyectadas -->
+                                                </div>
+                                            </div>
+                                        </div>
                                 </div>
+
 
                             </div>
                         </div>

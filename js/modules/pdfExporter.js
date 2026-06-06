@@ -348,10 +348,23 @@ export async function exportToPDF(projectName, markdown, projectData = {}) {
         </div>
     `;
 
+    // Sanitizar, remover acentos y limitar la longitud del nombre del archivo (evita fallos de Windows/Chrome)
+    let safeProjectName = (projectName || 'especificacion')
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos de forma elegante
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+        
+    if (safeProjectName.length > 60) {
+        safeProjectName = safeProjectName.slice(0, 60).replace(/_$/, '');
+    }
+
+    const finalFilename = `${safeProjectName}_srs.pdf`;
+
     // Opciones avanzadas de html2pdf
     const options = {
         margin: [10, 15, 15, 15], // márgenes cómodos en mm
-        filename: `${(projectName || 'especificacion').toLowerCase().replace(/[^a-z0-9]+/g, '_')}_srs.pdf`,
+        filename: finalFilename,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2.2, // escala alta para que el texto sea híper-nítido
@@ -368,11 +381,48 @@ export async function exportToPDF(projectName, markdown, projectData = {}) {
     };
 
     try {
-        // Ejecutar la exportación PDF usando html2pdf.js cargado de forma global
-        await html2pdf().set(options).from(tempContainer).save();
+        // Generar el PDF como Blob en memoria
+        const pdfBlob = await html2pdf().set(options).from(tempContainer).outputPdf('blob');
+        
+        // Descargar el Blob usando showSaveFilePicker o fallback
+        await downloadBlob(pdfBlob, finalFilename, 'application/pdf');
         console.log('PDF exportado y descargado con éxito.');
     } catch (err) {
         console.error('Error durante la generación de html2pdf:', err);
         throw err;
     }
+}
+
+/**
+ * Utilidad de descarga robusta basada en File System Access API (showSaveFilePicker)
+ * con fallback tradicional en caso de no ser compatible.
+ */
+async function downloadBlob(blob, filename, mimeType) {
+    if ('showSaveFilePicker' in window) {
+        try {
+            const types = mimeType === 'application/pdf'
+                ? [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+                : [{ description: 'Documento', accept: { [mimeType]: ['.pdf'] } }];
+            const handle = await window.showSaveFilePicker({ suggestedName: filename, types });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return;
+        } catch (e) {
+            if (e.name === 'AbortError') return;
+            console.warn('showSaveFilePicker falló o fue cancelado, usando fallback tradicional:', e);
+        }
+    }
+    
+    // Fallback tradicional si no es compatible
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }

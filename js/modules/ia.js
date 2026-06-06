@@ -8,11 +8,13 @@ import { showToast } from './ui.js';
 
 let aiTyping = false;
 
-export async function sendChatMessage() {
-    const text = elements.chatInput.value.trim();
-    const isRefinement = text === '' && document.querySelectorAll('.question-input').length > 0;
+export async function analyzeIdea(isRefinement = false) {
+    const ideaText = elements.textIdea.value.trim();
+    if (!ideaText) {
+        showToast('Por favor, escribe tu idea en la columna central antes de iniciar el análisis.', 'warning');
+        return;
+    }
     
-    if (!text && !isRefinement) return;
     if (aiTyping) return;
 
     // Recopilar respuestas si es un refinamiento
@@ -30,31 +32,38 @@ export async function sendChatMessage() {
             showToast('Por favor, responde al menos una pregunta para refinar el análisis.', 'info');
             return;
         }
-        
-        addMessage('user', `<i class="ri-refresh-line"></i> Solicitando refinamiento basado en ${userAnswers.length} respuestas.`);
-    } else {
-        addMessage('user', text);
-        elements.chatInput.value = '';
     }
     
     aiTyping = true;
+    
+    const originalBtnHTML = elements.btnAnalyzeIdea ? elements.btnAnalyzeIdea.innerHTML : '';
+    if (elements.btnAnalyzeIdea) {
+        elements.btnAnalyzeIdea.disabled = true;
+        elements.btnAnalyzeIdea.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Procesando...`;
+    }
+
     const loadingText = isRefinement ? 'Refinando análisis técnico con tus respuestas...' : 'Consultando Engine de Arquitectura de GT Data Consulting...';
-    addMessage('ai', `<i class="ri-loader-4-line ri-spin"></i> ${loadingText}`);
+    if (elements.analysisReportContainer) {
+        elements.analysisReportContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 200px; gap: 15px;">
+                <i class="ri-loader-4-line ri-spin" style="font-size: 40px; color: var(--primary);"></i>
+                <span style="font-size: 13px; color: var(--text-muted);">${loadingText}</span>
+            </div>
+        `;
+    }
     
     try {
-        const sourceText = elements.textIdea.value.trim() || text;
         const result = await apiFetch(endpoints.analyzeVibe, {
             method: 'POST',
             body: JSON.stringify({ 
-                text: sourceText,
-                answers: userAnswers // Enviamos las respuestas al backend
+                text: ideaText,
+                answers: userAnswers
             })
         });
         
-        const lastMsg = elements.chatMessages.lastElementChild;
-        renderAnalysisReport(result, lastMsg);
-        
-        aiTyping = false;
+        if (elements.analysisReportContainer) {
+            renderAnalysisReport(result, elements.analysisReportContainer);
+        }
         
         // Auto-completar campos si están vacíos
         if (!elements.textObjective.value.trim()) elements.textObjective.value = result.goal;
@@ -71,10 +80,25 @@ export async function sendChatMessage() {
         
     } catch (error) {
         console.error('Error en análisis IA:', error);
-        const lastMsg = elements.chatMessages.lastElementChild;
-        lastMsg.innerHTML = `<i class="ri-error-warning-line"></i> Error al conectar con el motor de IA.`;
+        if (elements.analysisReportContainer) {
+            elements.analysisReportContainer.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 200px; gap: 12px; color: var(--danger); text-align: center;">
+                    <i class="ri-error-warning-line" style="font-size: 36px;"></i>
+                    <span style="font-size: 13px;">Error al conectar con el motor de IA. Por favor, reintenta.</span>
+                </div>
+            `;
+        }
+    } finally {
+        if (elements.btnAnalyzeIdea) {
+            elements.btnAnalyzeIdea.disabled = false;
+            elements.btnAnalyzeIdea.innerHTML = originalBtnHTML;
+        }
         aiTyping = false;
     }
+}
+
+export async function sendChatMessage() {
+    return analyzeIdea(false);
 }
 
 function renderAnalysisReport(result, container) {
@@ -208,7 +232,7 @@ function integrateAnswersToIdea(event) {
 
 // Escuchar eventos
 document.addEventListener('requestRefinement', () => {
-    sendChatMessage();
+    analyzeIdea(true);
 });
 
 document.addEventListener('integrateAnswers', (e) => {
@@ -216,10 +240,7 @@ document.addEventListener('integrateAnswers', (e) => {
 });
 
 export function addMessage(sender, text) {
-    const div = document.createElement('div');
-    div.className = `message message-${sender}`;
-    div.innerHTML = text;
-    elements.chatMessages.appendChild(div);
-    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    // Deprecado pero mantenido para compatibilidad
+    console.warn('addMessage está obsoleto ya que se eliminó el chat de triage.');
 }
 

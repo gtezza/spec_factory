@@ -335,7 +335,7 @@ function renderAdminDashboard() {
     const assignedIdeas = dashboardIdeas.filter(idea => {
         const isApprover = idea.approver_id === state.user.id;
         const statusName = (idea.statuses?.name || idea.status || 'BORRADOR').toUpperCase();
-        const isPending = statusName === 'PENDIENTE' || statusName === 'PENDIENTE APROBACION' || statusName === 'A APROBAR' || statusName === 'A APROBACION';
+        const isPending = statusName === 'PENDIENTE APROBACION' || statusName === 'EN ANALISIS';
         return isApprover && isPending;
     });
 

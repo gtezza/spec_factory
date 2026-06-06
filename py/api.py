@@ -8,6 +8,7 @@ import os
 import json
 from dotenv import load_dotenv
 from spec_converter import convert_code_to_spec, save_specification, search_specifications, validate_user, create_user, get_glossary, propose_glossary_term, save_glossary_term, delete_glossary_term, update_specification_status, get_specification_history, analyze_vibe_logic, convert_triage_to_spec, supabase
+from agile_agent import generate_agile_backlog
 
 load_dotenv(dotenv_path='env/.env')
 
@@ -314,10 +315,10 @@ def create_triage_request():
         if not all(k in data for k in required):
             return jsonify({"error": "Faltan campos obligatorios (idea, creator_id, sector_id)"}), 400
             
-        # 1. Obtener ID del estado inicial 'PENDIENTE' si el cliente no envía uno
+        # 1. Obtener ID del estado inicial 'PENDIENTE APROBACION' si el cliente no envía uno
         status_id = data.get('status_id')
         if not status_id:
-            status_res = supabase.table("statuses").select("id").eq("name", "PENDIENTE").execute()
+            status_res = supabase.table("statuses").select("id").eq("name", "PENDIENTE APROBACION").execute()
             if status_res.data:
                 status_id = status_res.data[0]['id']
         
@@ -526,6 +527,63 @@ def get_specification_detail(spec_id):
         if not result.data:
             return jsonify({"error": "Especificación no encontrada"}), 404
         return jsonify({"status": "success", "data": result.data[0]}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specifications/<spec_id>/agile', methods=['POST'])
+def generate_spec_agile_backlog(spec_id):
+    try:
+        # 1. Obtener la especificación
+        spec_res = supabase.table("specifications").select("title, markdown").eq("id", spec_id).execute()
+        if not spec_res.data:
+            return jsonify({"error": "Especificación no encontrada"}), 404
+            
+        spec = spec_res.data[0]
+        
+        # 2. Generar el backlog usando el agente
+        backlog_data = generate_agile_backlog(spec.get("title"), spec.get("markdown"))
+        if "error" in backlog_data:
+            return jsonify({"error": backlog_data["error"]}), 500
+            
+        # 3. Guardar en Supabase (Upsert)
+        db_payload = {
+            "spec_id": spec_id,
+            "epic": json.dumps(backlog_data["epic"]),
+            "user_stories": backlog_data["user_stories"],
+            "backlog_markdown": backlog_data["markdown"]
+        }
+        
+        # Verificar si ya existe un backlog para la spec
+        existing = supabase.table("agile_backlogs").select("id").eq("spec_id", spec_id).execute()
+        if existing.data:
+            result = supabase.table("agile_backlogs").update(db_payload).eq("spec_id", spec_id).execute()
+        else:
+            result = supabase.table("agile_backlogs").insert(db_payload).execute()
+            
+        if result.data:
+            # Parsear epic para devolverlo como objeto en lugar de string en el JSON
+            response_data = result.data[0]
+            if isinstance(response_data.get("epic"), str):
+                response_data["epic"] = json.loads(response_data["epic"])
+            return jsonify({"status": "success", "data": response_data}), 201
+        else:
+            return jsonify({"error": "No se pudo guardar el backlog en la base de datos"}), 500
+            
+    except Exception as e:
+        print(f"[ERROR] generate_spec_agile_backlog: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specifications/<spec_id>/agile', methods=['GET'])
+def get_spec_agile_backlog(spec_id):
+    try:
+        result = supabase.table("agile_backlogs").select("*").eq("spec_id", spec_id).execute()
+        if not result.data:
+            return jsonify({"status": "not_found", "message": "Backlog no generado aún"}), 404
+            
+        response_data = result.data[0]
+        if isinstance(response_data.get("epic"), str):
+            response_data["epic"] = json.loads(response_data["epic"])
+        return jsonify({"status": "success", "data": response_data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

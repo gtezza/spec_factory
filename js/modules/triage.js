@@ -37,7 +37,7 @@ export function runQualityAudit() {
 }
 
 export async function saveRequest(statusName = 'BORRADOR') {
-    const isSubmit = statusName === 'A APROBAR';
+    const isSubmit = statusName === 'PENDIENTE APROBACION';
     const statusObj = state.statuses.find(s => s.name === statusName);
     
     const req = {

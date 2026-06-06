@@ -38,6 +38,8 @@ export const elements = {
     get chatMessages() { return document.getElementById('chat-messages'); },
     get chatInput() { return document.getElementById('chat-input'); },
     get btnSendChat() { return document.getElementById('btn-send-chat'); },
+    get btnAnalyzeIdea() { return document.getElementById('btn-analyze-idea'); },
+    get analysisReportContainer() { return document.getElementById('analysis-report-container'); },
     get auditLog() { return document.getElementById('audit-log'); },
     get auditContainer() { return document.getElementById('audit-log-container'); },
     get btnLogout() { return document.getElementById('btn-logout'); },

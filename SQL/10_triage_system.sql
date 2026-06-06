@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS triage_requests (
     benefits TEXT,
     roi TEXT,
     idea TEXT,
+    goal TEXT,
+    risks JSONB DEFAULT '[]',
+    questions JSONB DEFAULT '[]',
+    suggestions JSONB DEFAULT '[]',
     criticality TEXT DEFAULT 'Media', -- Opcional: convertir a tabla si se desea
     
     metadata JSONB DEFAULT '{}', -- Para auditoría y otros datos

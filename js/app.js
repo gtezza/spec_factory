@@ -7,7 +7,7 @@ import { state, elements } from './modules/state.js';
 import { showToast, populateSelect, toggleModal } from './modules/ui.js';
 import { checkSession, login, logout } from './modules/auth.js';
 import { generateRequestId, saveRequest, runQualityAudit } from './modules/triage.js';
-import { sendChatMessage } from './modules/ia.js';
+import { analyzeIdea } from './modules/ia.js';
 import { apiFetch, endpoints } from './modules/api.js';
 import { initAttachmentEvents } from './modules/attachments.js';
 import { sbClient } from './modules/supabase.js';
@@ -153,7 +153,7 @@ function setupEventListeners() {
     // Triage
     elements.selectSector?.addEventListener('change', generateRequestId);
     elements.btnSaveRequest?.addEventListener('click', () => saveRequest('BORRADOR'));
-    elements.btnSubmitRequest?.addEventListener('click', () => saveRequest('A APROBAR'));
+    elements.btnSubmitRequest?.addEventListener('click', () => saveRequest('PENDIENTE APROBACION'));
     
     [elements.textObjective, elements.textBenefits, elements.inputRoi, elements.textIdea].forEach(el => {
         el?.addEventListener('blur', runQualityAudit);
@@ -162,10 +162,7 @@ function setupEventListeners() {
     elements.btnCloseWarning?.addEventListener('click', () => toggleModal(elements.modalWarning, false));
 
     // IA
-    elements.btnSendChat?.addEventListener('click', sendChatMessage);
-    elements.chatInput?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatMessage();
-    });
+    elements.btnAnalyzeIdea?.addEventListener('click', () => analyzeIdea(false));
 
     // Adjuntos
     initAttachmentEvents();
